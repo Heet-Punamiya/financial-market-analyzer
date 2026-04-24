@@ -1,0 +1,1736 @@
+
+--- Page 1 ---
+
+
+--- Page 2 ---
+
+
+--- Page 3 ---
+AssignmentNo.2AIM:UsingpivottablesandansweringstrategicquestionsTheory:WhatisaPivotTable?APivotTableisaninteractivedatasummarizationtoolusedtoaggregate,sort,count,andtotaldatastoredinatableorspreadsheet.The"pivot"inthenamereferstotheuser'sabilitytorotate(orpivot)thedatafieldstoviewtheinformationfromdifferentperspectiveswithoutchangingtheoriginaldatasource.Thinkofitasalensthattakesamassive,messylistoftransactionsandinstantlycollapsesitintoaclean,meaningfulsummary.KeyComponentsofaPivotTableTounderstandhowtheywork,youneedtounderstandthefour"areas"orquadrantswheredataisplaced:1.Rows:Theuniquevaluesfromacolumnthatwillappearaslabelsontheleftside(e.g.,alistofSalesReps).2.Columns:Theuniquevaluesfromacolumnthatwillappearasheadersacrossthetop(e.g.,Monthsoftheyear).3.Values:Theactualdatayouwanttomeasure(e.g.,SumofRevenue,CountofOrders,orAveragePrice).4.Filters:Awaytorestricttheentiretabletospecificcriteria(e.g.,Showdataonlyfor"NorthAmerica").CoreUseCasesPivottablesareessentialinanyrolethatinvolvesdecision-makingbasedonnumbers.Herearesomecommonwaystheyareused:SalesAnalysis:Quicklyidentifyingwhichproductcategorygeneratedthemostprofitinaspecificregion.Budgeting:Comparingactualspendingagainstprojectedbudgetsacrossdifferentdepartments.HRManagement:Calculatingtheaveragesalaryorheadcountacrossvariousjobtitlesandlocations.
+
+--- Page 4 ---
+Marketing:Analyzingcampaignperformancebygroupingleadsbysource(e.g.,SocialMediavs.Email).Time-SeriesAnalysis:Groupingindividualdatesintoyears,quarters,ormonthstoseegrowthtrends.WhyUsePivotTables?(The"Theory"ofEfficiency)TheprimarytheoreticaladvantageofaPivotTableisDataAbstraction.InsteadofmanuallywritingcomplexformulaslikeSUMIFSorCOUNTIFSforeverysinglecategory,thePivotTableengineautomaticallyperformsthesecalculationsinthebackground.Speed:Whatwouldtakehoursofmanualsortingtakessecondswithapivot.Flexibility:Ifyourbossasks,"Canyoushowmethisbycityinsteadofbycountry?"yousimplydragthe"City"fieldintotheRowsbox.ErrorReduction:Sincethetoolautomatesthemath,thereisamuchlowerriskofhumanerrorcomparedtomanualcellreferencing.ASimpleExampleImagineyouhave5,000rowsofgrocerystoredata.EachrowhasaDate,Category(Dairy,Meat,Produce),andSalesAmount.RawData:5,000linesof"Milk-$3.00","Steak-$15.00",etc.PivotTable:A3-rowsummaryshowingtotalsalesforDairy,Meat,andProduce.Practice1:Q-1MaximumandminimumorderAmountforeachcountry,salespersonwiseCountrySalespersonMinofOrderAmountMaxofOrderAmountUKBuchanan$103.20$9,210.90
+
+--- Page 5 ---
+Dodsworth$12.50$11,380.00King$60.00$12,615.05Suyama$48.00$4,707.54UKTotal$12.50$12,615.05USACallahan$36.00$4,825.00Davolio$33.75$15,810.00Fuller$40.00$16,387.50Leverling$45.00$10,952.84Peacock$18.40$11,188.40USATotal$18.40$16,387.50GrandTotal$12.50$16,387.50Q2:TotalnumberoforderpercountryCountrySalespersonNumberofordersUKBuchanan42Dodsworth41King67Suyama65UKTotal215USACallahan99Davolio117Fuller92Leverling125Peacock151USATotal584GrandTotal799Q3:AverageamountforeachcountryCountryAverageofOrderAmountUK$1,550.38
+
+--- Page 6 ---
+USA$1,532.53GrandTotal$1,537.33Q4:TotalorderamountforpeacockonlySalespersonSumofOrderAmountPeacock$225,763.68GrandTotal$225,763.68Q5:WhohasmadethemaximumsalesinUKCountrySalespersonnumberofsalesUKKing67UKTotal67GrandTotal67Q6:WhichsalespersonhasmadethehighestsalesSalespersonnumberofsalesPeacock151Leverling125Davolio117Callahan99Fuller92King67Suyama65Buchanan42Dodsworth41GrandTotal799Q7:WhichcountryhasmadethemorenumberofsalesCountrynumberofsalesUSA584UK215GrandTotal799Q8:WhatisthetotalsalesforeachcountryCountrynumberofsalesUSA584
+
+--- Page 7 ---
+UK215GrandTotal799Q9:Top2salespersonswhohasmadethehighestsalesinallcountriesSalespersonTotalorderamountLeverling$201,196.27Peacock$225,763.68GrandTotal$426,959.95Practice2:Q1:TotalSalesmadebyeachcountryquarterwiseSumofOrderIDColumnLabelsRowLabelsQtr1Qtr2Qtr3Qtr4GrandTotalUK7982285125474617555170492289579USA20982121336600128107615016266217514GrandTotal28964401849147174283120186758507093Q2:AveragesalesofsalespersonyearwiseAverageofOrderIDColumnLabelsRowLabels200320042005GrandTotalBuchanan10318.810608.05310884.30810624.69Callahan10309.7647110562.63610935.92610621.02Davolio10330.0869610600.51810915.89510649.786Dodsworth10311.810622.83310907.94410710.073Fuller10321.0714310587.46310946.70310691.402King10329.2727310570.61810915.13610644.119Leverling10323.8888910592.73110912.4510656.328Peacock10313.6451610594.06410911.85710624.887Suyama10310.9285710598.80610907.8510631.892GrandTotal10319.0769210590.0710918.39310647.175
+
+--- Page 8 ---
+Q3:Monthlysalesreportofallthesalespersons
+Conclusion:Weansweredstaticalquestionsusingpivottables.LOMAPPING:LO1,LO6
+
+--- Page 9 ---
+Assignment3Aim:PowerBIBuildingandPublishingaDashboardusingChartsTheory:1.Analyzecountrywisetotalprofitusingbubblemapchart
+
+
+--- Page 10 ---
+2.Analyzesegmentwisetotalsalesusingclusteredcolumnchart
+3.Analyzeregionwisetotalsalesandprofitusingareachart.
+
+
+--- Page 11 ---
+4.Displaysubcategorywisetotalsalesusingfunnelchart
+5.Displayprofitbyregionusingdonutchart
+
+
+--- Page 12 ---
+6.DisplaySumofquantityusingGaugechart
+7.Insertbarcharttodisplayyearwisesumofsales
+7.InsertPivottablesalesdatamonthwiseforeachyearanddoconditionalformattingusingrule-baseddatarangecolordisplay
+
+
+--- Page 13 ---
+8.Useconcepthierarchyandexploredrillupanddrilldownoperationsbycreatingbarchartofsumofsalesbyyear.
+
+
+--- Page 14 ---
+Conclusion:Inthisexperiment,PowerBIwasusedtobuildaninteractivedashboardusingmultiplevisualizationstoanalyzesalesandprofitdata.Differentchartssuchasmaps,columns,area,funnel,donut,gauge,andbarchartshelpedsummarizedatafromvariousperspectiveslikecountry,region,segment,andtime.Theuseofpivottables,conditionalformatting,andconcepthierarchyenabledeffectivedataaggregation,comparison,anddrill-downanalysisforbetterdecision-making.LOMAPPING:LO1,LO6
+
+--- Page 15 ---
+ASSIGNMENT 4 
+Aim:  
+1.Creating DWH schema and estimate size of the fact table 
+
+--- Page 16 ---
+ 
+
+
+--- Page 17 ---
+ 
+
+
+--- Page 18 ---
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+2.Data modelling and visualization using Power BI 
+ 
+
+
+--- Page 19 ---
+ 
+Conclusion: This assignment covered the design of a Data Warehouse schema and 
+estimation of the fact table size, providing insight into efficient data storage and 
+scalability planning. The modeled data was then used in Power BI for data modeling 
+and visualization, converting raw data into meaningful insights through interactive 
+dashboards. Overall, the assignment highlights the importance of integrating data 
+warehousing and business intelligence to support effective, data-driven decision 
+making. 
+LO MAPPING : LO1 
+
+
+--- Page 20 ---
+1  
+Assignment No – 05 
+AIM: Exploring visualisa on of stati cal dispersion characteriscs 
+Using python 
+Theory: 
+Statistical dispersion describes the extent to which data values in a dataset are 
+spread or scattered around a central value. While measures of central tendency 
+such as mean, median, and mode provide information about the central 
+position of the data, measures of dispersion explain how much the data values 
+differ from one another and from the central value. 
+Understanding dispersion is important because datasets having the same mean 
+can still differ greatly in terms of how their values are distributed. Therefore, 
+analyzing dispersion helps in gaining deeper insights into the dataset. 
+Visualization plays an important role in understanding statistical dispersion 
+because graphical methods make it easier to observe patterns, spread, and 
+variability in the data. 
+Visualization of dispersion helps in: 
+ Understanding the degree of variability present in the dataset 
+ Identifying outliers or unusual values 
+ Comparing the distribution of multiple datasets 
+ Observing the shape and skewness of data distribution 
+ Supporting better analysis and data-driven decision making 
+Visualization Techniques for Dispersion in Python 
+1. Histogram 
+A histogram is a graphical representation that shows the frequency distribution 
+of numerical data. It divides the data into different intervals (bins) and displays 
+the number of observations in each interval. 
+ Helps in understanding the distribution and spread of data 
+ Shows whether the data is normally distributed, skewed, or uniform 
+ Useful for observing variability and concentration of values 
+
+--- Page 21 ---
+2  
+2. Box Plot 
+A box plot (also called a box-and-whisker plot) is used to display the 
+distribution of data based on five summary statistics. 
+These include: 
+ Minimum value 
+ First Quartile (Q1) 
+ Median (Q2) 
+ Third Quartile (Q3) 
+ Maximum value 
+The box plot clearly shows the Interquartile Range (IQR) and helps in 
+identifying outliers that fall outside the normal range of the data. 
+3. Scatter Plot 
+A scatter plot is used to represent the relationship between two numerical 
+variables by plotting data points on a two-dimensional graph. 
+ Each point represents one observation 
+ The spread of points indicates the degree of dispersion 
+ It is useful for identifying patterns, relationships, or correlations between 
+variables 
+Measures of Statistical Dispersion 
+(a) Range 
+Range is the simplest measure of dispersion and represents the difference 
+between the highest and lowest values in a dataset. 
+Range = Maximum Value − Minimum Value 
+ Easy to calculate 
+ Gives a quick idea of the overall spread of data 
+ However, it is highly sensitive to outliers 
+(b) Variance 
+
+--- Page 22 ---
+3  
+Variance measures the average of the squared differences between each data 
+value and the mean of the dataset. 
+ It indicates how far the data values are spread from the mean 
+ A larger variance means the data is more widely distributed 
+ The unit of variance is expressed in squared form of the original data unit 
+(c) Standard Deviation 
+Standard deviation is the square root of the variance and represents the 
+average distance of data points from the mean. 
+ It is the most commonly used measure of dispersion 
+ Provides a clear idea of how much the data deviates from the mean 
+ Expressed in the same unit as the original dataset 
+(d) Interquartile Range (IQR) 
+The Interquartile Range measures the spread of the middle 50% of the dataset. 
+IQR = Q3 − Q1 
+Where: 
+ Q1 is the first quartile (25th percentile) 
+ Q3 is the third quartile (75th percentile) 
+ It focuses only on the central portion of the dataset 
+ Less affected by extreme values or outliers 
+ 
+ 
+Conclusion: 
+LO3 Mapped. 
+
+--- Page 23 ---
+ 
+ 
+ 
+
+
+--- Page 24 ---
+ 
+ 
+ 
+
+
+--- Page 25 ---
+ 
+ 
+ 
+
+
+--- Page 26 ---
+ 
+ 
+ 
+
+
+--- Page 27 ---
+ 
+1 
+ 
+ 
+Assignment No 5 
+3. Use MS-Excel to 
+a. Extract summary of descriptive statistics 
+ 
+b. percentiles of 10, 20,25, 50,75, 80,90,100 
+ 
+c. Create frequency bin 
+ 
+d. Draw histogram of the following dataset 
+
+--- Page 28 ---
+ 
+2 
+ 
+ 
+ 
+ 
+e. Draw boxplot of the following dataset 
+13,15,16,16,19,20,20,21,22,22,25,25,25,25,30,33,33,35,35,35,35,36,40,45,46,52,70 
+ 
+
+
+--- Page 29 ---
+ 
+1 
+ 
+ 
+ 
+ 
+ 
+Assignment No 5 
+ 
+ 
+In [1]: 
+ 
+ 
+] 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Mean: 69.1304347826087 
+Median: 70.0 
+Mode: 57 
+Midrange: 69.0 
+Range: 24 
+Q1: 66.0 
+Q3: 75.0 
+IQR: 9.0 
+Lower Limit: 52.5 
+Upper Limit: 88.5 
+import numpy as np import scipy.stats as stats data1 = 
+[57,57,57,58,63,66,66,67,67,68,69,70,70,70,72,73,75,75,76,76,78,79,81 
+ 
+print("Mean:", np.mean(data1)) print("Median:", 
+np.median(data1)) print("Mode:", stats.mode(data1, 
+keepdims=True)[0][0]) print("Midrange:", (min(data1) 
++ max(data1)) / 2) print("Range:", max(data1) - 
+min(data1)) 
+ 
+Q1 = np.percentile(data1, 25) 
+Q3 = np.percentile(data1, 75) 
+IQR = Q3 - Q1 
+ 
+print("Q1:", Q1) 
+print("Q3:", Q3) 
+print("IQR:", IQR) 
+ 
+lower = Q1 - 1.5 * IQR 
+upper = Q3 + 1.5 * IQR 
+ 
+print("Lower Limit:", lower) 
+print("Upper Limit:", upper) 
+ 
+for x in data1: 
+if x < lower or x > upper: 
+print("Outlier:", x) 
+
+--- Page 30 ---
+ 
+2 
+ 
+ 
+ 
+In [2]: 
+ import numpy as np import 
+matplotlib.pyplot as plt from 
+collections import Counter 
+ 
+# Given data 
+data = [57, 57, 57, 58, 63, 66, 66, 67, 67, 68, 69, 70, 70, 70, 
+72, 73, 75, 75, 76, 76, 78, 79, 81] 
+ 
+# Convert to numpy array 
+arr = np.array(data) 
+ 
+# a) Mean mean = 
+np.mean(arr) 
+
+--- Page 31 ---
+ 
+3 
+ 
+ 
+ 
+ 
+Mean = 69.1304347826087 
+Median = 70.0 
+Mode = [np.int32(57), np.int32(70)] 
+Midrange = 69.0 
+Range = 24 
+Q1 = 66.0 
+Q2 (Median) = 70.0 
+Q3 = 75.0 
+IQR = 9.0 
+# b) Median 
+median = np.median(arr) 
+ 
+# c) Mode 
+counts = Counter(arr) 
+mode = [k for k, v in counts.items() if v == max(counts.values())] 
+ 
+# d) Midrange 
+midrange = (np.min(arr) + np.max(arr)) / 2 
+ 
+# e) Range 
+range_val = np.max(arr) - np.min(arr) 
+ 
+# f) Quartiles 
+Q1 = np.percentile(arr, 25) 
+Q2 = np.percentile(arr, 50) # Median 
+Q3 = np.percentile(arr, 75) 
+ 
+# g) Interquartile Range (IQR) 
+IQR = Q3 - Q1 
+ 
+# Display results 
+print("Mean =", mean) 
+print("Median =", median) 
+print("Mode =", mode) 
+print("Midrange =", 
+midrange) print("Range =", 
+range_val) print("Q1 =", Q1) 
+print("Q2 (Median) =", Q2) 
+print("Q3 =", Q3) print("IQR 
+=", IQR) 
+ 
+# h) Boxplot 
+plt.boxplot(arr, vert=False) 
+plt.title("Boxplot of Given Dataset") 
+plt.xlabel("Values") 
+plt.show() 
+
+--- Page 32 ---
+ 
+4 
+ 
+ 
+ 
+ 
+
+
+--- Page 33 ---
+ 
+5 
+ 
+ 
+ 
+In [3]: 
+ import numpy as np import 
+matplotlib.pyplot as plt from 
+collections import Counter 
+ 
+# Given data 
+data = [52, 57, 57, 58, 63, 66, 66, 67, 67, 68, 69, 70, 70, 70, 
+72, 73, 75, 75, 76, 76, 78, 79, 89] 
+ 
+# Convert list to numpy array 
+arr = np.array(data) 
+ 
+# a) Mean mean = 
+np.mean(arr) 
+ 
+# b) Median 
+median = np.median(arr) 
+ 
+# c) Mode 
+counts = Counter(arr) 
+mode = [k for k, v in counts.items() if v == max(counts.values())] 
+ 
+# d) Midrange 
+midrange = (np.min(arr) + np.max(arr)) / 2 
+ 
+# e) Range 
+range_val = np.max(arr) - np.min(arr) 
+
+--- Page 34 ---
+ 
+6 
+ 
+ 
+ 
+ 
+Mean = 69.26086956521739 
+Median = 70.0 
+Mode = [np.int32(70)] 
+Midrange = 70.5 
+Range = 37 
+Q1 = 66.0 
+Q2 (Median) = 70.0 
+Q3 = 75.0 
+IQR = 9.0 
+ 
+ 
+# f) Quartiles 
+Q1 = np.percentile(arr, 25) 
+Q2 = np.percentile(arr, 50) # Median 
+Q3 = np.percentile(arr, 75) 
+ 
+# g) Interquartile Range 
+IQR = Q3 - Q1 
+ 
+# Print results print("Mean 
+=", mean) print("Median =", 
+median) print("Mode =", 
+mode) print("Midrange =", 
+midrange) print("Range =", 
+range_val) print("Q1 =", Q1) 
+print("Q2 (Median) =", Q2) 
+print("Q3 =", Q3) print("IQR 
+=", IQR) 
+ 
+# h) Boxplot 
+plt.boxplot(arr, vert=False) 
+plt.title("Boxplot of Given Dataset") 
+plt.xlabel("Values") 
+plt.show() 
+
+--- Page 35 ---
+ 
+7 
+ 
+ 
+ 
+ 
+ 
+ 
+In [4]: 
+
+
+--- Page 36 ---
+8 
+ 
+ 
+Ritika Dingra | 67 | T13 
+ 
+ 
+ 
+ 
+ 
+e 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Total Frequency (N): 102 
+N/2: 51.0 
+Median Class: (30, 40) 
+Median of grouped data: 36.76470588235294 
+In [ ]: 
+# Class intervals and frequencies 
+class_intervals = [(0,10), (10,20), (20,30), (30,40), (40,50)] 
+frequencies = [4, 6, 18, 34, 40] 
+ 
+# Step 1: Total frequency 
+N = sum(frequencies) 
+N_by_2 = N / 2 
+ 
+# Step 2: Cumulative frequency 
+cumulative_freq = [] 
+cf = 0 for f in 
+frequencies: 
+cf += f 
+cumulative_freq.append(cf) 
+ 
+# Step 3: Find median class for i in 
+range(len(cumulative_freq)): 
+if cumulative_freq[i] >= N_by_2: 
+median_class_index = i 
+break 
+# Values needed for median formula 
+l = class_intervals[median_class_index][0] 
+ # lower limit f = 
+frequencies[median_class_index] # frequency of median class cf_prev = 
+cumulative_freq[median_class_index - 1] if median_class_index != 0 h = 
+class_intervals[median_class_index][1] - class_intervals[median_class_inde 
+# Step 4: Median calculation 
+median = l + ((N_by_2 - cf_prev) / f) * h 
+ 
+# Output 
+print("Total Frequency (N):", N) 
+print("N/2:", N_by_2) 
+print("Median Class:", class_intervals[median_class_index]) 
+print("Median of grouped data:", median) 
+
+--- Page 37 ---
+ 
+ 
+ 
+ 
+ 
+
+
+--- Page 38 ---
+ 
+ 
+ 
+ 
+ 
+
+
+--- Page 39 ---
+ 
+ 
+ 
+ 
+ 
+
+
+--- Page 40 ---
+ 
+ 
+ 
+ 
+
+
+--- Page 41 ---
+ 
+ 
+ASSIGNMENT NO : 6 
+ 
+ 
+Aim: Implementation of ID3 algorithm 
+ 
+Theory: 
+Implementation of the ID3 Algorithm – Theory 
+The ID3 (Iterative Dichotomiser 3) algorithm is a popular decision tree learning technique 
+used for classification tasks in data mining and machine learning. Developed by Ross 
+Quinlan, ID3 builds a decision tree by selecting the attribute that best separates the data into 
+different classes using the concept of Information Gain, which is based on Entropy from 
+information theory. 
+Basic Idea 
+The main goal of the ID3 algorithm is to create a decision tree that can accurately classify 
+data instances. It does this by recursively selecting the attribute that provides the maximum 
+Information Gain, meaning the attribute that best reduces uncertainty about the target class. 
+The process continues until all data instances are classified or no further useful splits are 
+possible. 
+Key Concepts 
+1. Entropy 
+Entropy measures the impurity or randomness in a dataset. If all instances belong to the same 
+class, the entropy is 0 (pure). If the dataset contains a mix of classes, the entropy is higher. 
+Formula for Entropy: 
+[ 
+Entropy(S) = - \sum_{i=1}^{n} p_i \log_2(p_i) 
+] 
+where ( p_i ) is the probability of instances belonging to class ( i ). 
+2. Information Gain 
+Information Gain measures the reduction in entropy achieved by splitting the dataset based 
+on a particular attribute. The attribute with the highest Information Gain is selected for 
+splitting. 
+Formula for Information Gain: 
+
+--- Page 42 ---
+ 
+ 
+[ 
+Gain(S, A) = Entropy(S) - \sum_{v \in Values(A)} \frac{|S_v|}{|S|} \times Entropy(S_v) 
+] 
+where: 
+ 
+ ( S ) is the dataset, 
+ 
+ ( A ) is the attribute, 
+ 
+ ( S_v ) is the subset of ( S ) where attribute ( A ) takes value ( v ). 
+Working of the ID3 Algorithm 
+The implementation of ID3 follows a top-down, greedy, and recursive approach: 
+1. 
+ Start with the Entire Dataset 
+The full training dataset is considered as the root of the decision tree. 
+2. 
+ Check for Pure Class 
+o 
+ If all instances belong to the same class, create a leaf node with that class 
+label. 
+o 
+ If there are no remaining attributes to split, create a leaf node with the majority 
+class. 
+3. 
+ Calculate Entropy of the Dataset 
+Determine the impurity of the current dataset using the entropy formula. 
+4. 
+ Compute Information Gain for Each Attribute 
+For every attribute, calculate the expected reduction in entropy after splitting the 
+dataset. 
+5. 
+ Select the Best Attribute 
+Choose the attribute with the highest Information Gain as the decision node. 
+6. 
+ Create Branches for Each Attribute Value 
+Split the dataset into subsets based on the selected attribute’s possible values. 
+7. 
+ Recursively Apply the Same Process 
+Repeat the above steps for each subset until one of the stopping conditions is met. 
+Stopping Conditions 
+The recursive splitting stops when: 
+ 
+ All instances in a subset belong to the same class. 
+ 
+ There are no remaining attributes to split. 
+ 
+ The subset of data is empty, in which case the majority class of the parent node is 
+assigned. 
+ 
+ Information Gain becomes zero, indicating no further useful splits. 
+Algorithm Steps (Pseudo-Code) 
+ID3(S, Attributes, Target) 
+ 
+
+--- Page 43 ---
+ 
+ 
+1. If all examples in S belong to the same class: 
+       Return a leaf node with that class. 
+ 
+2. If Attributes is empty: 
+       Return a leaf node with the majority class in S. 
+ 
+3. Select attribute A with the highest Information Gain. 
+ 
+4. Create a decision node with attribute A. 
+ 
+5. For each value v of attribute A: 
+       a. Create a branch for value v. 
+       b. Let Sv be the subset of S where A = v. 
+       c. If Sv is empty: 
+              Attach a leaf node with the majority class of S. 
+          Else: 
+              Attach the subtree ID3(Sv, Attributes − {A}, Target). 
+ 
+6. Return the decision node. 
+Characteristics of ID3 
+ 
+ Greedy Approach: Chooses the best attribute at each step without reconsidering 
+previous decisions. 
+ 
+ Top-Down Construction: Begins at the root and recursively builds the tree downward. 
+ 
+ Handles Categorical Attributes: Works best with discrete data. 
+ 
+ No Pruning: The basic ID3 algorithm does not include pruning, which may lead to 
+overfitting. 
+ 
+ Interpretable Model: Produces easy-to-understand decision rules. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+--- Page 44 ---
+ 
+ 
+import pandas as pd 
+import numpy as np from 
+math import log2 
+ 
+# LOAD DATASET 
+df = pd.read_csv("buys_computer.csv") 
+ 
+# Drop Record column if present 
+if "Record" in df.columns: 
+df = df.drop("Record", axis=1) 
+ 
+ 
+# ENTROPY FUNCTION 
+def entropy(target): 
+values, counts = np.unique(target, return_counts=True) probs = counts / 
+counts.sum() 
+return -sum(p * log2(p) for p in probs if p > 0) 
+ 
+ 
+# INFORMATION GAIN FUNCTION 
+def information_gain(df, attribute, target="Buys_Computer"): total_entropy = 
+entropy(df[target]) 
+values, counts = np.unique(df[attribute], return_counts=True) weighted_entropy = 0 
+for v, c in zip(values, counts): subset = 
+df[df[attribute] == v] 
+weighted_entropy += (c / len(df)) * entropy(subset[target]) 
+ 
+return total_entropy - weighted_entropy 
+ 
+ 
+# ================= ITERATION 1 ================= 
+ 
+print("========= ITERATION 1 =========") 
+ 
+total_entropy = entropy(df["Buys_Computer"]) print("Total 
+Entropy:", round(total_entropy,4)) attributes = df.columns[:-1] # 
+exclude target 
+ig_values = {} 
+for attr in attributes: 
+ig = information_gain(df, attr) ig_values[attr] = ig 
+print(f"Information Gain ({attr}) = {round(ig,4)}") best_attr = max(ig_values, 
+key=ig_values.get) 
+print("\nBest Attribute (Root):", best_attr) 
+# ================= ITERATION 2 ================= 
+print("\n========= ITERATION 2 =========") 
+ 
+for value in df[best_attr].unique(): 
+ 
+print(f"\n--- Branch: {best_attr} = {value} ---") 
+
+--- Page 45 ---
+ 
+ 
+ 
+subset = df[df[best_attr] == value] 
+ 
+subset_entropy = entropy(subset["Buys_Computer"]) 
+print("Subset Entropy:", round(subset_entropy,4)) 
+ 
+remaining_attrs = [attr for attr in attributes if attr != best_attr] ig_values_subset = {} 
+for attr in remaining_attrs: 
+ig = information_gain(subset, attr) 
+ig_values_subset[attr] = ig 
+print(f"Information Gain ({attr}) = {round(ig,4)}") 
+ 
+ 
+# ================= ITERATION 3 ================= 
+ 
+print("\n========= ITERATION 3 =========") 
+ 
+for value in df[best_attr].unique(): subset 
+= df[df[best_attr] == value] 
+# If node already pure 
+if entropy(subset["Buys_Computer"]) == 0: final_class = 
+subset["Buys_Computer"].iloc[0] 
+print(f"\nBranch {best_attr} = {value} → Class = {final_class}") 
+continue 
+ 
+remaining_attrs = [attr for attr in attributes if attr != best_attr] ig_values_subset = {} 
+for attr in remaining_attrs: 
+ig_values_subset[attr] = information_gain(subset, attr) best_attr2 = 
+max(ig_values_subset, key=ig_values_subset.get) 
+print(f"\nBranch {best_attr} = {value}") print("Best 
+Attribute:", best_attr2) 
+ 
+for v in subset[best_attr2].unique(): 
+ 
+ 
+ print("\nBest Attribute (Root):", best_attr) 
+# ================= ITERATION 2 ================= 
+print("\n========= ITERATION 2 =========") 
+ 
+for value in df[best_attr].unique(): 
+ 
+print(f"\n--- Branch: {best_attr} = {value} ---") 
+ 
+subset = df[df[best_attr] == value] 
+ 
+subset_entropy = entropy(subset["Buys_Computer"]) 
+print("Subset Entropy:", round(subset_entropy,4)) 
+
+--- Page 46 ---
+ 
+ 
+ 
+remaining_attrs = [attr for attr in attributes if attr != best_attr] ig_values_subset = {} 
+for attr in remaining_attrs: 
+ig = information_gain(subset, attr) 
+ig_values_subset[attr] = ig 
+print(f"Information Gain ({attr}) = {round(ig,4)}") 
+ 
+ 
+# ================= ITERATION 3 ================= 
+ 
+print("\n========= ITERATION 3 =========") 
+ 
+for value in df[best_attr].unique(): subset 
+= df[df[best_attr] == value] 
+# If node already pure 
+if entropy(subset["Buys_Computer"]) == 0: final_class = 
+subset["Buys_Computer"].iloc[0] 
+print(f"\nBranch {best_attr} = {value} → Class = {final_class}") 
+continue 
+ 
+remaining_attrs = [attr for attr in attributes if attr != best_attr] ig_values_subset = {} 
+for attr in remaining_attrs: 
+ig_values_subset[attr] = information_gain(subset, attr) best_attr2 = 
+max(ig_values_subset, key=ig_values_subset.get) 
+print(f"\nBranch {best_attr} = {value}") print("Best 
+Attribute:", best_attr2) 
+ 
+for v in subset[best_attr2].unique(): 
+ 
+ 
+ 
+========= ITERATION 1 ========= 
+Total Entropy: 0.9403 
+Information Gain (Age) = 
+0.015 
+Information Gain (Income) = 0.0292 
+Information Gain (Student) = 0.9403 
+Information Gain (Credit_Rating) = 0.0161 
+ 
+Best Attribute (Root): Student 
+ 
+========= ITERATION 2 ========= 
+ 
+--- Branch: Student = No --
+- Subset Entropy: -0.0 
+Information Gain (Age) = -
+0.0 
+Information Gain (Income) = -0.0 
+
+--- Page 47 ---
+ 
+ 
+Information Gain (Credit_Rating) = -0.0 
+ 
+--- Branch: Student = Yes --
+- Subset Entropy: -0.0 
+Information Gain (Age) = -
+0.0 
+Information Gain (Income) = -0.0 
+Information Gain (Credit_Rating) = -0.0 
+ 
+========= ITERATION 3 ========= 
+ 
+Branch Student = No → Class = No 
+Branch Student = Yes → Class = Yes 
+import matplotlib.pyplot as plt plt.figure(figsize=(10,6)) 
+# Root 
+plt.text(0.5,0.9,"Age",ha='center',bbox=dict(boxstyle="round")) 
+ 
+# Level 1 
+plt.text(0.2,0.75,"<=30",ha='center') 
+plt.text(0.5,0.75,"31..40",ha='center') 
+plt.text(0.8,0.75,">40",ha='center') 
+ 
+# Level 2 plt.text(0.2,0.6,"Student",ha='center',bbox=dict(boxstyle="round")) 
+plt.text(0.5,0.6,"Yes",ha='center',bbox=dict(boxstyle="round")) 
+plt.text(0.8,0.6,"Credit_Rating",ha='center',bbox=dict(boxstyle="round")) 
+ 
+# Leaves 
+plt.text(0.15,0.4,"No",ha='center',bbox=dict(boxstyle="round")) 
+plt.text(0.25,0.4,"Yes",ha='center',bbox=dict(boxstyle="round")) 
+ 
+plt.text(0.75,0.4,"Yes",ha='center',bbox=dict(boxstyle="round")) 
+plt.text(0.85,0.4,"No",ha='center',bbox=dict(boxstyle="round")) 
+ 
+# Lines 
+plt.plot([0.5,0.2],[0.88,0.77]) 
+plt.plot([0.5,0.5],[0.88,0.77]) 
+plt.plot([0.5,0.8],[0.88,0.77]) 
+ 
+plt.plot([0.2,0.2],[0.73,0.62]) 
+plt.plot([0.8,0.8],[0.73,0.62]) 
+ 
+plt.plot([0.2,0.15],[0.58,0.42]) 
+plt.plot([0.2,0.25],[0.58,0.42]) 
+ 
+plt.plot([0.8,0.75],[0.58,0.42]) 
+plt.plot([0.8,0.85],[0.58,0.42]) 
+ 
+plt.axis("off") plt.show() 
+ 
+ 
+
+--- Page 48 ---
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Conclusion: 
+The ID3 algorithm is a foundational decision tree method that builds a classification model by 
+recursively selecting attributes with the highest Information Gain. Using concepts like Entropy and 
+Information Gain, it creates a clear and interpretable tree structure. Despite some limitations such as 
+overfitting and bias toward multi-valued attributes, ID3 remains an essential and widely taught 
+algorithm in data mining and machine learning. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+--- Page 49 ---
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+--- Page 50 ---
+1 
+ 
+ 
+Assignment No – 07 
+AIM: Implementation of K-means clustering using python 
+Theory: 
+Introduction to Clustering 
+Clustering is an unsupervised learning technique used in data mining and machine learning 
+to group similar data points together based on their features. In clustering, there are no 
+predefined labels, and the algorithm tries to find patterns or structures within the data. 
+Objects in the same cluster are more similar to each other than to objects in other clusters. 
+Clustering is widely used in data analysis, pattern recognition, image processing, and 
+business intelligence for grouping similar records. 
+One of the most popular clustering algorithms is K-Means clustering, which partitions the 
+dataset into a fixed number of clusters. To determine the correct number of clusters, the 
+Elbow Method is used. 
+K-Means Clustering 
+K-Means clustering is a partition-based clustering algorithm that divides a dataset into K 
+number of clusters, where K is given by the user. Each cluster has a centroid, which 
+represents the center of that cluster. The algorithm assigns each data point to the nearest 
+centroid and updates the centroid until the clusters become stable. 
+Working of K-Means Algorithm 
+1. Choose the number of clusters K. 
+2. Select K initial centroids randomly from the dataset. 
+3. Calculate the distance of each data point from all centroids. 
+4. Assign each point to the nearest centroid. 
+5. Recalculate the centroid of each cluster by taking the mean of points. 
+6. Repeat steps 3–5 until centroids do not change or maximum iterations reached. 
+This process minimizes the distance between data points and their cluster centers. 
+Advantages of K-Means 
+ Simple and easy to implement 
+ Fast for small datasets 
+ Works well when clusters are clearly separated 
+ Efficient for large datasets 
+Disadvantages of K-Means 
+
+--- Page 51 ---
+2 
+ 
+ 
+ Need to specify number of clusters beforehand 
+ Sensitive to initial centroid selection 
+ Not suitable for irregular shaped clusters 
+ Results may change due to randomness 
+Elbow Method 
+The Elbow Method is used to determine the optimal number of clusters in K-Means 
+clustering. Choosing the correct value of K is important because too few clusters give poor 
+grouping and too many clusters create unnecessary divisions. 
+The elbow method uses WCSS (Within Cluster Sum of Squares) to measure cluster quality. 
+At first, WCSS decreases rapidly. 
+After some value of K, decrease becomes slow. 
+That bending point is called the elbow. 
+Applications of K-Means Clustering 
+ Customer segmentation 
+ Image compression 
+ Document classification 
+ Market analysis 
+ Pattern recognition 
+ Recommendation systems 
+Conclusion: 
+LO4 Mapped. 
+K-Means clustering is a simple and efficient unsupervised learning algorithm used to group 
+similar data points into clusters based on distance from centroids. However, selecting the 
+correct number of clusters is important for accurate results. The Elbow Method helps in 
+finding the optimal number of clusters against different values of K and identifying the point 
+where the decrease becomes slow. In this experiment, K-Means clustering was implemented 
+and the Elbow Method was used to analyze cluster performance and determine the suitable 
+number of clusters 
+
+--- Page 52 ---
+1 
+ 
+ 
+Output: 
+ 
+In [1]: import numpy as np 
+ 
+# Given data 
+data = [2, 4, 10, 12, 3, 20, 30, 11, 25] 
+ 
+m1 = 3 
+m2 = 4 
+ 
+iterations = 4 
+for i in range(iterations): 
+k1 = [] 
+k2 = [] 
+ 
+# Assign points to nearest mean 
+for point in data: 
+d1 = abs(point - m1) 
+d2 = abs(point - m2) 
+ 
+if d1 < d2: 
+k1.append(point) 
+else: 
+k2.append(point) 
+ 
+# Calculate new means 
+new_m1 = sum(k1) / len(k1) 
+new_m2 = sum(k2) / len(k2) 
+ 
+# Display iteration result 
+print("Iteration", i+1) 
+print("K1 =", k1) 
+print("K2 =", k2) 
+print("M1 =", new_m1) 
+print("M2 =", new_m2) 
+print(" ") 
+ 
+# Update means for next iteration 
+m1 = new_m1 
+m2 = new_m2 
+ 
+print("Final Clusters") 
+print("K1 =", k1) 
+print("K2 =", k2) 
+print("Final Means: M1 =", m1, "M2 =", m2) 
+
+--- Page 53 ---
+ 
+ 
+ 
+2 
+Iteration 1 
+K1 = [2, 3] 
+K2 = [4, 10, 12, 20, 30, 11, 25] 
+M1 = 2.5 
+M2 = 16.0 
+Iteration 2 
+K1 = [2, 4, 3] 
+K2 = [10, 12, 20, 30, 11, 25] 
+M1 = 3.0 
+M2 = 18.0 
+ 
+Iteration 3 
+K1 = [2, 4, 10, 3] 
+K2 = [12, 20, 30, 11, 25] 
+M1 = 4.75 
+M2 = 19.6 
+ 
+Iteration 4 
+K1 = [2, 4, 10, 12, 3, 11] 
+K2 = [20, 30, 25] 
+M1 = 7.0 
+M2 = 25.0 
+ 
+Final Clusters 
+K1 = [2, 4, 10, 12, 3, 11] 
+K2 = [20, 30, 25] 
+Final Means: M1 = 7.0 M2 = 25.0 
+ 
+In [22]: 
+ import numpy as np 
+import matplotlib.pyplot as plt 
+np.random.seed(0) 
+data = np.array([2,4,10,12,3,20,30,11,25]) 
+ 
+k = int(input("Enter number of clusters: ")) 
+centroids = np.random.choice(data, k) 
+iterations = 5 
+for it in range(iterations): 
+ 
+clusters = [[] for _ in range(k)] 
+ 
+for point in data: 
+distances = [abs(point - c) for c in centroids] 
+idx = distances.index(min(distances)) 
+clusters[idx].append(point) 
+ 
+new_centroids = [] 
+ 
+for cluster in clusters: 
+
+--- Page 54 ---
+ 
+3 
+ 
+ 
+if len(cluster) > 0: 
+new_centroids.append(sum(cluster)/len(cluster)) 
+else: 
+new_centroids.append(0) 
+centroids = new_centroids 
+ 
+print("Final clusters:", clusters) 
+print("Final centroids:", centroids) 
+ 
+ 
+wcss = [] 
+ 
+K_range = range(1, 10) 
+ 
+for K in K_range: 
+ 
+centroids = np.random.choice(data, K) 
+ 
+for _ in range(5): 
+ 
+clusters = [[] for _ in range(K)] 
+ 
+for point in data: 
+distances = [abs(point - c) for c in centroids] 
+idx = distances.index(min(distances)) 
+clusters[idx].append(point) 
+ 
+new_centroids = [] 
+ 
+for cluster in clusters: 
+if len(cluster) > 0: 
+new_centroids.append(sum(cluster)/len(cluster)) 
+else: 
+new_centroids.append(0) 
+centroids = new_centroids 
+sse = 0 
+ 
+for i in range(K): 
+for p in clusters[i]: 
+sse += (p - centroids[i])**2 
+wcss.append(sse) 
+ 
+plt.plot(K_range, wcss, marker='o') 
+plt.xlabel("Number of clusters") 
+plt.ylabel("WCSS") 
+plt.title("Elbow Method") 
+plt.show() 
+
+--- Page 55 ---
+ 
+4 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+In [ ]: 
+Final clusters: [[np.int32(20), np.int32(30), np.int32(25)], [np.int32(2), np.i 
+nt32(4), np.int32(3)], [np.int32(12)], [], [np.int32(10), np.int32(11)], []] 
+Final centroids: [np.float64(25.0), np.float64(3.0), np.float64(12.0), 0, np.fl 
+oat64(10.5), 0] 
+ 
+
+--- Page 56 ---
+ 
+1 
+ 
+ 
+Assignment No – 08 
+AIM: Study of Weka tool and implementation of classification, clustering and 
+association using Weka 
+Theory: 
+Introduction to WEKA 
+WEKA (Waikato Environment for Knowledge Analysis) is an open-source software used for 
+data mining and machine learning tasks. It is developed by the University of Waikato in New 
+Zealand and is written in Java language, which makes it platform independent. WEKA 
+provides a collection of algorithms that can be used for data preprocessing, classification, 
+clustering, association rule mining, and visualization. 
+In Business Intelligence and Data Mining practicals, WEKA is considered an important tool 
+because it allows users to apply machine learning algorithms using a graphical interface 
+without writing complex code. It is mainly used for learning purposes, experiments, and 
+small-scale data analysis. 
+ 
+ 
+WEKA Interface and Components 
+When WEKA is opened, it shows the GUI chooser window which contains different options 
+such as 
+ Explorer 
+ Experimenter 
+ Knowledge Flow 
+ Simple CLI. 
+ 
+The Explorer is the most commonly used component in practicals because it provides an 
+easy interface to load dataset, apply algorithms, and view results. Inside Explorer, different 
+tabs are available like Preprocess, Classify, Cluster, Associate, Select Attributes, and 
+Visualize. Each tab is used for a different data mining operation. 
+In most laboratory experiments, the Explorer tab is used to perform classification, 
+clustering, and association rule mining. 
+ 
+ 
+Preprocessing in WEKA 
+Before applying any algorithm, the dataset must be prepared properly, which is called 
+preprocessing. In WEKA, preprocessing is done in the Preprocess tab where we can load the 
+dataset in ARFF or CSV format. 
+Preprocessing allows us to remove unwanted attributes, handle missing values, normalize 
+data, and apply filters. This step is important because machine learning algorithms work 
+correctly only when the data is clean and properly formatted. 
+
+--- Page 57 ---
+ 
+2 
+ 
+ 
+In most experiments, the dataset is first loaded and checked in the Preprocess tab before 
+moving to classification or clustering. 
+ 
+ 
+Classification using WEKA 
+Classification is a supervised learning technique used to predict the class label of data based 
+on training data. In WEKA, classification can be performed using algorithms such as Decision 
+Tree (J48 / ID3), Naive Bayes, Logistic Regression, and Random Forest. 
+To perform classification, the dataset is first loaded in the Preprocess tab, then the Classify 
+tab is selected. After that, a classifier is chosen and the model is executed. WEKA then shows 
+the result including accuracy, confusion matrix, and error rate. 
+Classification is used in many applications such as spam detection, medical diagnosis, and 
+customer prediction. In this practical, WEKA is used to apply classification algorithms on the 
+dataset to understand how data can be predicted using machine learning. 
+ 
+ 
+Clustering using WEKA 
+Clustering is an unsupervised learning method in which similar data objects are grouped 
+together without using class labels. In WEKA, clustering can be performed using algorithms 
+like K-Means, Hierarchical clustering, and EM clustering. 
+To perform clustering, the dataset is loaded and the Cluster tab is selected. After choosing 
+the clustering algorithm, the process is started and WEKA divides the data into different 
+clusters based on similarity. 
+Clustering is useful in customer segmentation, pattern recognition, and data analysis. In this 
+experiment, clustering is used to group similar records in the dataset to understand the 
+structure of data. 
+ 
+ 
+Association Rule Mining using WEKA 
+Association rule mining is used to find relationships between items in a dataset. The most 
+commonly used algorithm in WEKA for association is Apriori algorithm. This method 
+generates rules in the form A → B, which means if A occurs then B also occurs. 
+In WEKA, association rules are generated by loading the dataset, selecting the Associate tab, 
+choosing Apriori, and running the algorithm. The output shows different rules along with 
+support and confidence values. 
+Association rule mining is mainly used in market basket analysis, recommendation systems, 
+and business intelligence. In this practical, WEKA is used to generate association rules to 
+understand how items are related to each other. 
+
+--- Page 58 ---
+ 
+3 
+ 
+ 
+Output: 
+Cluster 
+ 
+ 
+
+--- Page 59 ---
+ 
+4 
+ 
+ 
+ 
+ 
+ 
+ 
+Classify 
+
+
+--- Page 60 ---
+ 
+5 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+--- Page 61 ---
+ 
+6 
+ 
+ 
+ 
+ 
+Associate 
+ 
+
+
+--- Page 62 ---
+ 
+7 
+ 
+ 
+ 
+ 
+ 
+Conclusion: 
+LO1, LO2, LO3 Mapped. 
+WEKA is an important data mining tool used for performing preprocessing, classification, 
+clustering, and association rule mining. It provides a simple graphical interface to apply 
+machine learning algorithms and analyze data easily. In this practical, WEKA is used to 
+implement classification, clustering, and association techniques, which helps in 
+understanding how data mining methods are applied in real-world problems 
+
+
+--- Page 63 ---
+I d ../ --<'4-~ p'-4.,"" a. ~ 'i:.., 
+~ti f\O '. \t, () 
+e>~~ ~-r1-\ 
+tBX®i6t l•WV4•• 
+TSEC 
+ttJ (lt ~ D <J i< ~ ex_ fU~CWl~ .. ~~!JL_j~~~~~~~ • . .. I 0 
+p 
+I rv4$ ' '-' 
+L~--U~~"--~---~~~~,tA-;}-J-J.Al--1':lWIIC~-:-OJ'\~· d clt ~·.ri..:W\. aJ a. 11J-A.; ( ft . L.--J1....c.1.1U&1~~~~~~.Ln.4~~~---:-g_J::le"' ~ w • 
+
+--- Page 64 ---
+I 
+J 
+--·~ Oa,b l WlDdi M '. (~ ch d cJa., µQf) &JJ./{lJz 
+----tt-~~~~~~~~;.u_ -t-'Y'{tLc ab' ¾ M J 
+"' 
+• 
+
+--- Page 65 ---
+IltADOMA~ 8HAHA"ii1 
+TSEC ~@!@ 
+• 
+D 
+' ' . 
+• 
+
+--- Page 66 ---
+, 
+. OLA P 
+
+--- Page 67 ---
+,--·--n-li\~h~~~. ..L_~i--1.:~o ~ N , J cJ-Cl w ~ 
+r----,,-~~~~-½~~~-U.L_)_J~~--~~1 
+o../\{1Aa_9-~----..i 
+,r-------n-----.......,;----=--•-~-=----lfil...;;...u l; cle c! 0 @ \J ~-®-J l:. tl.t.v\ (a,6, Jv Ck 
+~ _ W~m e..J 
+•r----~------,-~L1 ........... 1--"'---t-r~-=-~---. ---t-k(&{ 0½-,--
+~· VJd 
+~-.--U-~~~~-~~~~~~~--'cJ-:,. 
+d ~ a 4l(UQj\ t9MQ l 
+-0: . ~·--1 
+~-.---#-!~~~~~~--:-.. 7 d Cd:: CL 1 ~ Ll.. ~_(_ oJ\ 1 
+~-+_A-JJ~~T---:~ttla-__,;;,,_~cn ~ i-i' . ' 
+.. 
+C 
+• 
+
+--- Page 68 ---
+\ 
+• 
+~M'L : &uf P ~o... 
+(,~ _, T1,\ 
+RolAr-0 ~ '0 0 
+~~AtLL SHAHAW 
+fHADOM EC TS -• RJNG COLLEGE 
+• 
+\ , .. 
+• 
+• 
+• 
+
+--- Page 69 ---
+~, l 
+• 
+• 
+, 
+• 
+• 
+• 
+
+--- Page 70 ---
+.. . 
+-~~' .::i-..:......:_c<\ ~~½-lL~·~-~ QJ..U,LOLP~J , 
+
+--- Page 71 ---
+TiiAOOMAL SHAH::(m 
+TSEC 
+ENGfNE.tR1fFts?g-__ ~,.._GE 
+' 
+d tl~ I 
+• 
+• 
+• 
+• 
+• 
+• 
+
+--- Page 72 ---
+I 
+rJOS\.0-: 1~ut' rvJ\l\~~ 
+Wtl,~ TL\ 
+~~JJ "o ~ ,o o 
+THADOMAL SHAHANI 
+TSEC 
+o'-X 
+---1-J---. - ~~=~~---_,-. j=-·-,_"' -_-------.1 
+__ &l 1~~ IB~c~LV l9A • dtjcJ.,~~~~Q0_. ---.II 
+____ --+t-'1.t,~~~-aJ,ai>i>. ~ 0Jl ()iunj (Vy,JV\ ~..::.._::;,µ.:A __ l 
+L 2. • oJ:::e. ~ ClM o U a J.J GV1 ~ ak,, J 
+7- ~ - T-0 J 
+'T\ "l-1 1: s . I 
+TL 1 -r~ •. 
+L1- I-3 
+L. I·. 
+I.) •. 
+. I • -:L.\ iJ 
+T . J_~ t 1_ '1. 3 "'l-S 
+T 1:,\ 2 
+L - ~ui - z_ 
+1.i, 1 
+I. G 
+l. 1.s 1---
+\ 
+'J~ (l 
+V\ ~ k~ hvo ~~C<U-1' , 
+
+--- Page 73 ---
+~ 1. lMA ,tol • • 
+, ' \ .L 
+'t 
+L-,'l. • 
+, , (o 
+' 0 
+~\) L'-= L 
+t -~ A 
+' ~L-
+'L '1 
+1_ I~ L 'L 
+, 
+
+--- Page 74 ---
+..... , . _.......,... .. 
+,. ' "' 
+a 
+' 
+. ,, . 
+,I \ 
+t\ 
+s o·l" 
+L, ":-) ~ 
+~ I "~ ;,') 1-L. 'L L • 
+-
+00 , !- f' 
+;;;, :I \ ~ t;fL .. 0 .. 'j:.,\ ~, 1-1." 1 "l- ~ll I , • 1-1..-~ \" ! s 'l- ~l 'L1 'I, -:!.\" 1.. L- 1__.., 
+1-, \ oo, I , 
+~)I. • loo } 
+
+--- Page 75 ---
+CREDIT CARD FRAUD 
+DETECTION
+
+--- Page 76 ---
+TEAM MEMBERS
+ Suhani Poptani (98)
+ Ankit Prasad (99)
+ Heet Punamiya (100)
+
+--- Page 77 ---
+WHY CREDIT CARD FRAUD DETECTION
+ Massive Financial Losses
+Credit card fraud leads to billions in losses for banks and customers every year.
+ Increasing Digital Transactions
+Growth in online payments has significantly increased fraud opportunities.
+ Real-Time Detection Need
+Fraud must be detected instantly to prevent unauthorized transactions.
+ Customer Trust & Security
+Effective fraud detection protects users and maintains trust in banking systems.
+ Complex Fraud Patterns
+Fraudsters use advanced and evolving techniques, requiring intelligent detection systems.
+
+--- Page 78 ---
+DATASET 
+ Source- https://www.kaggle.com/datasets/mlg-
+ulb/creditcardfraud
+ Features Overview:
+ T otal Features-30
+ PCA Features (V1–V28) – Anonymized for privacy using 
+dimensionality reduction
+ Time
+ Amount
+ Target variable:
+ 0  Normal
+ 1  Fraud
+ T otal Transactions: 284,807 | Fraud Cases: 492
+ We applied SMOTE analysis to rectify the class 
+imbalance. We ended up making it 50-50 for ‘No 
+Fraud’ and ‘Fraud’.
+284315
+492
+0
+50000
+100000
+150000
+200000
+250000
+300000
+No Fraud Fraud
+Class Distribution
+The dataset is highly imbalanced, with fraud cases forming only a small fraction 
+of total transactions.
+
+--- Page 79 ---
+DATA EXPLORATION
+ Transaction amounts are 
+highly skewed, with most 
+transactions being of low value and 
+a few high-value outliers.
+ No direct feature 
+interpretability, as variables (V1–
+V28) are PCA-transformed, but 
+they still capture underlying 
+patterns.
+ Data shows complex 
+relationships between features, 
+which can help machine learning 
+models detect fraud patterns.
+
+
+--- Page 80 ---
+DATA MINING ALGORITHM
+ Multiple models were applied: Logistic 
+Regression, Random Forest, and Neural 
+Network to detect fraudulent transactions.
+ Data was preprocessed using train-
+test split (80-20) and feature scaling, 
+ensuring fair and consistent model 
+performance.
+ Models were evaluated using 
+Precision, Recall, and F1-score, with a 
+focus on Recall due to the importance of 
+detecting fraud cases.
+
+
+--- Page 81 ---
+EVALUATION OF PATTERNS
+ Model performance evaluated using 
+Precision, Recall, and F1-score due 
+to extreme class imbalance.
+ Random Forest achieved the best 
+balance with highest F1-score (~0.85) 
+and strong accuracy (~99.95%).
+ Confusion matrices show Random 
+Forest minimizes false positives (11) 
+while maintaining strong fraud 
+detection (80 true positives).
+ Logistic Regression detects most fraud 
+(90 true positives) but misclassifies 
+many legitimate transactions (1434 
+false positives).
+ Overall, Random Forest provides the 
+most reliable trade-off between fraud 
+detection and minimizing false alarms.
+
+
+--- Page 82 ---
+POWER BI OUTCOMES
+ We have created some 
+synthetic columns as most of 
+the columns are anonymized 
+PCA Components. 
+ This map visualizes the 
+geographic distribution of 
+flagged fraudulent transactions 
+across key European markets, 
+helping identify regional 
+hotspots and enabling more 
+targeted fraud monitoring and 
+resource allocation.
+
+
+--- Page 83 ---
+POWER BI OUTCOME
+ The bar chart shows fraud case 
+concentration across income 
+segments, with working 
+professionals accounting for the 
+highest observed share in the 
+simulated business layer.
+
+
+--- Page 84 ---
+POWER BI OUTCOME
+ “This donut chart shows the share 
+of fraud cases across gender 
+segments, helping identify 
+customer groups with relatively 
+higher fraud exposure.
+
+
+--- Page 85 ---
+FINAL CONCLUSION & BUSINESS INSIGHTS
+ Fraud detection is a highly imbalanced classification problem, where traditional accuracy is misleading 
+and Recall becomes the most important metric.
+ Among all models, the Neural Network performed best, achieving the highest Recall and F1-score, making 
+it most effective in identifying fraudulent transactions.
+ Minimizing false negatives is critical, as missing fraudulent transactions leads to direct financial loss and 
+reduced customer trust.
+ Data visualization using Power BI revealed key transaction patterns, such as skewed transaction 
+amounts and uneven fraud distribution.
+ Combining machine learning with business intelligence tools enables better decision-making, helping 
+financial institutions detect and prevent fraud effectively.
+
+--- Page 86 ---
+THANK YOU
+
