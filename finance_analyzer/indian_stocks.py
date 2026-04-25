@@ -1,5 +1,6 @@
-NIFTY_50 = {
-    "Zomato": "ZOMATO.NS",
+ALL_STOCKS = {
+    # NIFTY 50 & Mainboard
+    "Zomato Limited": "ZOMATO.NS",
     "Paytm (One97 Communications)": "PAYTM.NS",
     "Nykaa (FSN E-Commerce)": "NYKAA.NS",
     "Reliance Industries": "RELIANCE.NS",
@@ -52,5 +53,28 @@ NIFTY_50 = {
     "SBI Life Insurance": "SBILIFE.NS",
     "Adani Enterprises": "ADANIENT.NS",
     "Adani Ports": "ADANIPORTS.NS",
+    
+    # NSE SME (Emerge) Stocks
+    "E2E Networks Ltd (SME)": "E2E.NS",
+    "Phantom Digital Effects Ltd (SME)": "PHANTOMFX.NS",
+    "Droneacharya Aerial Innovations Ltd (SME)": "DRONE.NS",
+    "Alpex Solar Ltd (SME)": "ALPEXSOLAR.NS",
+    "Insolation Energy Ltd (SME)": "INA.NS",
+    "Spectrum Talent Management Ltd (SME)": "SPECTRUM.NS",
+    "Basilic Fly Studio Ltd (SME)": "BASILIC.NS",
+    "RBM Infracon Ltd (SME)": "RBMINFRA.NS",
+    "Remus Pharmaceuticals Ltd (SME)": "REMUS.NS",
+    "Krishca Strapping Solutions Ltd (SME)": "KRISHCA.NS",
+    "Techknowgreen Solutions Ltd (SME)": "TECHKNOW.NS",
+    "Kody Technolab Ltd (SME)": "KODYTECH.NS",
+    "Srivari Spices and Foods Ltd (SME)": "SRIVARI.NS",
+    "Ahasolar Technologies Ltd (SME)": "AHASOLAR.NS",
+    "Vinsys IT Services India Ltd (SME)": "VINSYS.NS",
+    "Yasons Chemex Care Ltd (SME)": "YASONS.NS",
+    "Cellecor Gadgets Ltd (SME)": "CELLECOR.NS",
+    "Kahan Packaging Ltd (SME)": "KAHAN.NS",
+    "Pramara Promotions Ltd (SME)": "PRAMARA.NS",
+    "Meson Valves India Ltd (SME)": "MESON.NS",
+
     "🔍 Custom/Other (Type Below)": "CUSTOM"
 }

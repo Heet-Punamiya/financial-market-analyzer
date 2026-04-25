@@ -42,3 +42,14 @@ def get_stock_news(ticker):
                 'published_at': published_at
             })
     return pd.DataFrame(articles)
+
+def get_stock_info(ticker):
+    """
+    Fetches fundamental data and company information for a given ticker.
+    """
+    try:
+        stock = yf.Ticker(ticker)
+        info = stock.info
+        return info
+    except Exception:
+        return {}
