@@ -262,6 +262,18 @@ if not st.session_state.logged_in:
     st.stop()
 
 # -- Helper Functions for Tech Analysis --
+def validate_stock_ticker(ticker):
+    """Validate if a stock ticker exists and is accessible"""
+    try:
+        stock = yf.Ticker(ticker)
+        info = stock.info
+        if info and 'regularMarketPrice' in info:
+            return True, info.get('longName', ticker), info.get('regularMarketPrice', 0)
+        else:
+            return False, "Invalid ticker or no data available", 0
+    except Exception as e:
+        return False, f"Error validating ticker: {str(e)}", 0
+
 def calc_rsi(data, periods=14):
     close_delta = data['Close'].diff()
     up = close_delta.clip(lower=0)
@@ -298,14 +310,131 @@ if st.sidebar.button("🚪 Logout"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("**📌 Stock Selection**")
 
-selected_company = st.sidebar.selectbox("Select Indian Stock", list(indian_stocks.ALL_STOCKS.keys()))
-if indian_stocks.ALL_STOCKS[selected_company] == "CUSTOM":
-    ticker = st.sidebar.text_input("Enter Custom Ticker (e.g., ZOMATO.NS)", "ZOMATO.NS").upper()
-else:
-    ticker = indian_stocks.ALL_STOCKS[selected_company]
-    st.sidebar.caption(f"Ticker: `{ticker}`")
+# Enhanced stock selection with search functionality
+st.sidebar.markdown("### Search & Select Stock")
+search_query = st.sidebar.text_input(
+    "🔍 Search by company name or ticker",
+    placeholder="e.g., Reliance, TCS, ZOMATO.NS",
+    help="Type company name or ticker symbol. Supports NSE (.NS) and BSE (.BO) stocks."
+).strip()
 
-period = st.sidebar.selectbox("Select Time Period", ["1mo", "3mo", "6mo", "1y", "2y", "5y"], index=3)
+# Get all available stocks for suggestions
+all_stocks = indian_stocks.ALL_STOCKS.copy()
+# Remove the custom entry
+if "🔍 Custom/Other (Type Below)" in all_stocks:
+    del all_stocks["🔍 Custom/Other (Type Below)"]
+
+# Filter stocks based on search query
+if search_query:
+    # Search in company names (case-insensitive)
+    name_matches = {name: ticker for name, ticker in all_stocks.items()
+                   if search_query.lower() in name.lower()}
+
+    # Search in tickers (case-insensitive)
+    ticker_matches = {name: ticker for name, ticker in all_stocks.items()
+                     if search_query.upper() in ticker.replace('.NS', '').replace('.BO', '').upper()}
+
+    # Combine and deduplicate matches
+    filtered_stocks = {**name_matches, **ticker_matches}
+
+    if filtered_stocks:
+        st.sidebar.markdown("**Suggested matches:**")
+        selected_from_suggestions = st.sidebar.selectbox(
+            "Select from suggestions:",
+            options=list(filtered_stocks.keys()),
+            format_func=lambda x: f"{x} ({filtered_stocks[x]})",
+            key="suggestions"
+        )
+        if selected_from_suggestions:
+            selected_company = selected_from_suggestions
+            ticker = filtered_stocks[selected_from_suggestions]
+        else:
+            selected_company = search_query
+            ticker = search_query.upper()
+    else:
+        # No matches found, treat as custom ticker
+        selected_company = search_query
+        ticker = search_query.upper()
+        st.sidebar.info("💡 No matches found. Using as custom ticker.")
+else:
+    # No search query - show popular stocks
+    st.sidebar.markdown("**Popular Stocks:**")
+    popular_stocks = ["Reliance Industries Ltd", "Tata Consultancy Services Ltd",
+                     "HDFC Bank Ltd", "ICICI Bank Ltd", "Infosys Ltd"]
+    selected_popular = st.sidebar.selectbox(
+        "Quick select:",
+        options=popular_stocks,
+        format_func=lambda x: f"{x} ({all_stocks.get(x, 'N/A')})",
+        key="popular"
+    )
+    if selected_popular:
+        selected_company = selected_popular
+        ticker = all_stocks.get(selected_popular, selected_popular.upper())
+    else:
+        selected_company = "Reliance Industries Ltd"  # Default
+        ticker = all_stocks.get(selected_company, "RELIANCE.NS")
+
+# Custom ticker input option
+st.sidebar.markdown("### Or Enter Custom Ticker")
+custom_ticker = st.sidebar.text_input(
+    "Direct ticker entry:",
+    placeholder="e.g., ZOMATO.NS, RELIANCE.BO",
+    help="Enter any NSE (.NS) or BSE (.BO) ticker symbol"
+).strip().upper()
+
+if custom_ticker:
+    ticker = custom_ticker
+    selected_company = custom_ticker
+    st.sidebar.success(f"Using custom ticker: {ticker}")
+
+st.sidebar.markdown("### Browse All Stocks")
+with st.sidebar.expander("📋 View all available stocks"):
+    st.markdown(f"**Total stocks available:** {len(all_stocks)}")
+
+    # Group stocks by exchange
+    nse_stocks = {name: ticker for name, ticker in all_stocks.items() if ticker.endswith('.NS')}
+    bse_stocks = {name: ticker for name, ticker in all_stocks.items() if ticker.endswith('.BO')}
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"**NSE:** {len(nse_stocks)} stocks")
+        if st.button("Load NSE List", key="nse_list"):
+            st.session_state.show_nse = True
+
+    with col2:
+        st.markdown(f"**BSE:** {len(bse_stocks)} stocks")
+        if st.button("Load BSE List", key="bse_list"):
+            st.session_state.show_bse = True
+
+    if st.session_state.get('show_nse', False):
+        st.markdown("**NSE Stocks:**")
+        for name, ticker in sorted(nse_stocks.items())[:50]:  # Show first 50
+            if st.button(f"{name} ({ticker})", key=f"nse_{ticker}"):
+                st.session_state.selected_ticker = ticker
+                st.session_state.selected_company = name
+                st.rerun()
+        if len(nse_stocks) > 50:
+            st.caption(f"... and {len(nse_stocks) - 50} more NSE stocks")
+
+    if st.session_state.get('show_bse', False):
+        st.markdown("**BSE Stocks:**")
+        for name, ticker in sorted(bse_stocks.items())[:50]:  # Show first 50
+            if st.button(f"{name} ({ticker})", key=f"bse_{ticker}"):
+                st.session_state.selected_ticker = ticker
+                st.session_state.selected_company = name
+                st.rerun()
+        if len(bse_stocks) > 50:
+            st.caption(f"... and {len(bse_stocks) - 50} more BSE stocks")
+
+# Handle stock selection from browse lists
+if 'selected_ticker' in st.session_state:
+    ticker = st.session_state.selected_ticker
+    selected_company = st.session_state.selected_company
+    # Clear the selection
+    del st.session_state.selected_ticker
+    del st.session_state.selected_company
+
+st.sidebar.markdown("---")
 
 if st.sidebar.button("⭐ Add to Watchlist", use_container_width=True):
     if auth.add_to_watchlist(st.session_state.username, ticker):
@@ -313,10 +442,53 @@ if st.sidebar.button("⭐ Add to Watchlist", use_container_width=True):
     else:
         st.sidebar.info(f"{ticker} is already in your watchlist.")
 
-st.sidebar.markdown("---")
+# Initialize user preferences in session state
+if 'user_favorites' not in st.session_state:
+    st.session_state.user_favorites = []
 
-# -- Main Logic --
+if 'recent_stocks' not in st.session_state:
+    st.session_state.recent_stocks = []
+
+# Add to recent stocks
+if ticker not in st.session_state.recent_stocks:
+    st.session_state.recent_stocks.insert(0, ticker)
+    # Keep only last 10
+    st.session_state.recent_stocks = st.session_state.recent_stocks[:10]
+
+# Show recent stocks
+if st.session_state.recent_stocks:
+    # Show favorites/watchlist
+    try:
+        watchlist_data = auth.get_watchlist(st.session_state.username)
+        if watchlist_data:
+            st.sidebar.markdown("### Your Watchlist")
+            for item in watchlist_data[:5]:  # Show first 5
+                watch_ticker = item['ticker']
+                if st.sidebar.button(f"❤️ {watch_ticker}", key=f"watch_{watch_ticker}"):
+                    ticker = watch_ticker
+                    # Try to find company name
+                    company_names = [name for name, t in all_stocks.items() if t == watch_ticker]
+                    selected_company = company_names[0] if company_names else watch_ticker
+    except:
+        pass  # Watchlist might not be available
+
+    st.sidebar.markdown("### Recently Viewed")
+    for recent_ticker in st.session_state.recent_stocks[:5]:  # Show last 5
+        if st.sidebar.button(f"🔄 {recent_ticker}", key=f"recent_{recent_ticker}"):
+            ticker = recent_ticker
+            # Try to find company name
+            company_names = [name for name, t in all_stocks.items() if t == recent_ticker]
+            selected_company = company_names[0] if company_names else recent_ticker
 if ticker:
+    # Validate ticker before proceeding
+    with st.spinner("Validating stock ticker..."):
+        is_valid, validation_msg, current_price = validate_stock_ticker(ticker)
+
+    if not is_valid:
+        st.error(f"❌ {validation_msg}")
+        st.info("💡 **Tips:**\n- Use .NS for NSE stocks (e.g., RELIANCE.NS)\n- Use .BO for BSE stocks (e.g., RELIANCE.BO)\n- Check ticker spelling and exchange")
+        st.stop()
+
     try:
         with st.spinner(f"Crunching advanced market data for {ticker}..."):
             stock_data = data_fetcher.get_stock_data(ticker, period)
