@@ -3,6 +3,3 @@ pandas
 numpy
 yfinance
 plotly
-nltk
-statsmodels
-scikit-learn

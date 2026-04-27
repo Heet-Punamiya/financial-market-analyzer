@@ -2,15 +2,18 @@ import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
 
-def get_stock_data(ticker, period="1y"):
+def get_stock_data(ticker, period="1y", interval="1d"):
     """
     Fetches historical stock price data for a given ticker.
     """
     stock = yf.Ticker(ticker)
-    hist = stock.history(period=period)
+    hist = stock.history(period=period, interval=interval)
     hist.reset_index(inplace=True)
     # yfinance sometimes returns timezone-aware dates, standardize them
     if 'Date' in hist.columns:
+        hist['Date'] = pd.to_datetime(hist['Date']).dt.tz_localize(None)
+    elif 'Datetime' in hist.columns:
+        hist.rename(columns={'Datetime': 'Date'}, inplace=True)
         hist['Date'] = pd.to_datetime(hist['Date']).dt.tz_localize(None)
     return hist
 
