@@ -6,3 +6,12 @@ venv/
 env/
 .pytest_cache/
 .vscode/
+
+# Local databases and configs
+fintrend.db
+users.json
+
+# Temporary logs and scrapes
+*.log
+*.html
+*.txt
