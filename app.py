@@ -1133,7 +1133,9 @@ if ticker:
                     tc1.metric("Strategy Total Return", f"{strat_tot:.2f}%")
                     tc2.metric("Buy & Hold Total Return", f"{mark_tot:.2f}%")
                     
-                    st.inf            # ==========================================
+                    st.info("Note: This is a basic simulation excluding trading fees, slippage, and taxes.")
+
+            # ==========================================
             # TAB 7: IPO ZONE
             # ==========================================
             with tab7:
@@ -1202,12 +1204,12 @@ if ticker:
                         st.info("No recently listed IPOs found.")
                     else:
                         for idx, row in listed_df.iterrows():
-                            company_name = row.get("Company Name", "N/A")
-                            segment = row.get("Segment", "Mainline")
-                            listing_date = row.get("Listing Date", "TBD")
-                            issue_price = row.get("Issue Price", "TBD")
-                            listing_gain = row.get("Listing Gain", "-")
-                            ltp = row.get("LTP", "-")
+                            company_name = str(row.get("Company Name", "N/A"))
+                            segment = str(row.get("Segment", "Mainline"))
+                            listing_date = str(row.get("Listing Date", "TBD"))
+                            issue_price = str(row.get("Issue Price", "TBD"))
+                            listing_gain = str(row.get("Listing Gain", "-"))
+                            ltp = str(row.get("LTP", "-"))
                             
                             # Clean listing gain color logic
                             gain_badge_class = "badge-positive" if "+" in listing_gain or "positive" in listing_gain.lower() else ("badge-negative" if "-" in listing_gain or "negative" in listing_gain.lower() else "badge-neutral")
@@ -1324,27 +1326,56 @@ if ticker:
                     scan_list = stocks_to_scan if stocks_to_scan else all_stock_names[:20]
                     results = []
 
-                    progress = st.progress(0, text="Scanning stocks...")
-                    for i, stock_name in enumerate(scan_list):
-                        t = indian_stocks.ALL_STOCKS[stock_name]
-                        try:
-                            df_scan = data_fetcher.get_stock_data(t, scan_period)
-                            score, signal, emoji = get_signal_score(df_scan)
-                            if score is not None:
-                                cur_p = df_scan['Close'].iloc[-1]
-                                day_chg = ((df_scan['Close'].iloc[-1] - df_scan['Close'].iloc[-2]) / df_scan['Close'].iloc[-2]) * 100
-                                results.append({
-                                    "Company": stock_name,
-                                    "Ticker": t,
-                                    "Price": cur_p,
-                                    "Day Change %": day_chg,
-                                    "Signal": signal,
-                                    "Score": score
-                                })
-                        except:
-                            pass
-                        progress.progress((i + 1) / len(scan_list), text=f"Scanning {stock_name}...")
-
+                    progress = st.progress(0, text="Running bulk market scan...")
+                    ticker_list = [indian_stocks.ALL_STOCKS[name] for name in scan_list if name in indian_stocks.ALL_STOCKS]
+                    
+                    try:
+                        # Fetch all tickers in a single bulk request to prevent rate-limiting on Streamlit Cloud
+                        bulk_data = yf.download(
+                            tickers=ticker_list,
+                            period=scan_period,
+                            interval="1d",
+                            group_by='ticker',
+                            threads=True,
+                            progress=False
+                        )
+                        
+                        for i, stock_name in enumerate(scan_list):
+                            t = indian_stocks.ALL_STOCKS.get(stock_name)
+                            if not t:
+                                continue
+                                
+                            # Extract single stock DataFrame from bulk data
+                            if len(ticker_list) == 1:
+                                df_scan = bulk_data.copy()
+                            else:
+                                if t in bulk_data.columns.levels[0]:
+                                    df_scan = bulk_data[t].copy()
+                                else:
+                                    df_scan = pd.DataFrame()
+                                    
+                            if not df_scan.empty and 'Close' in df_scan.columns:
+                                df_scan.reset_index(inplace=True)
+                                if 'Date' in df_scan.columns:
+                                    df_scan['Date'] = pd.to_datetime(df_scan['Date']).dt.tz_localize(None)
+                                    
+                                score, signal, emoji = get_signal_score(df_scan)
+                                if score is not None:
+                                    cur_p = df_scan['Close'].iloc[-1]
+                                    prev_p = df_scan['Close'].iloc[-2] if len(df_scan) > 1 else cur_p
+                                    day_chg = ((cur_p - prev_p) / prev_p) * 100
+                                    results.append({
+                                        "Company": stock_name,
+                                        "Ticker": t,
+                                        "Price": cur_p,
+                                        "Day Change %": day_chg,
+                                        "Signal": signal,
+                                        "Score": score
+                                    })
+                            progress.progress((i + 1) / len(scan_list), text=f"Processed {stock_name}...")
+                    except Exception as scan_err:
+                        st.error(f"Bulk scan error: {str(scan_err)}")
+                        
                     progress.empty()
 
                     if results:

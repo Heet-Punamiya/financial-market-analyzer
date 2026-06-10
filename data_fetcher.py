@@ -139,62 +139,71 @@ def get_live_ipo_data():
             html = r.text.replace('₹', 'Rs.')
             tables = pd.read_html(io.StringIO(html), flavor='lxml')
             
-            ongoing_df = pd.DataFrame()
-            listed_df = pd.DataFrame()
-            upcoming_df = pd.DataFrame()
+            ongoing_list = []
+            listed_list = []
+            upcoming_list = []
 
-            if len(tables) > 5:
-                t5 = tables[5]
-                ongoing_list = []
-                for _, row in t5.iterrows():
-                    name = str(row.get('Company Name', '')).replace(' IPO', '').strip()
-                    segment = str(row.get('Unnamed: 1', 'Mainline')).strip()
-                    price = str(row.get('Issue Price', 'TBD')).strip()
-                    sub = str(row.get('Total Subscription', '-')).strip()
-                    lst_date = str(row.get('Listing Date', '-')).strip()
-                    if name and name != 'nan':
-                        ongoing_list.append({
-                            "Company Name": name,
-                            "Segment": segment,
-                            "Issue Price": price,
-                            "Subscription": sub,
-                            "Listing Date": lst_date
-                        })
-                ongoing_df = pd.DataFrame(ongoing_list)
-
-            if len(tables) > 6:
-                t6 = tables[6]
-                listed_list = []
-                for _, row in t6.iterrows():
-                    name = str(row.get('Company Name', '')).replace(' IPO', '').strip()
-                    segment = str(row.get('Unnamed: 1', 'Mainline')).strip()
-                    lst_date = str(row.get('Listing Date', '-')).strip()
-                    price = str(row.get('Issue Price', '-')).strip()
-                    gain = str(row.get('Listing Gain', '-')).strip()
-                    ltp = str(row.get('LTP (Rs.)', '-')).strip()
-                    if name and name != 'nan':
-                        listed_list.append({
-                            "Company Name": name,
-                            "Segment": segment,
-                            "Listing Date": lst_date,
-                            "Issue Price": price,
-                            "Listing Gain": gain,
-                            "LTP": ltp
-                        })
-                listed_df = pd.DataFrame(listed_list)
-
-            if len(tables) > 7:
-                t7 = tables[7]
-                upcoming_list = []
-                for _, row in t7.iterrows():
-                    name = str(row.get('Company Name', '')).strip()
-                    filing_date = str(row.get('DRHP Filing Date', '-')).strip()
-                    if name and name != 'nan':
-                        upcoming_list.append({
-                            "Company Name": name,
-                            "DRHP Filing Date": filing_date
-                        })
-                upcoming_df = pd.DataFrame(upcoming_list)
+            for idx, t in enumerate(tables):
+                cols = [str(c).strip().lower() for c in t.columns]
+                
+                # Check for Upcoming (DRHP Filed)
+                if any('drhp filing date' in c or 'drhp' in c for c in cols):
+                    for _, row in t.iterrows():
+                        name = str(row.get('Company Name', '')).strip()
+                        filing_date = str(row.get('DRHP Filing Date', '-')).strip()
+                        if name and name != 'nan' and not name.startswith('---'):
+                            upcoming_list.append({
+                                "Company Name": name,
+                                "DRHP Filing Date": filing_date
+                            })
+                            
+                # Check for Recently Listed
+                elif any('listing gain' in c or 'ltp' in c for c in cols):
+                    for _, row in t.iterrows():
+                        name = str(row.get('Company Name', '')).replace(' IPO', '').strip()
+                        segment = str(row.get('Unnamed: 1', 'Mainline')).strip()
+                        if segment == 'nan':
+                            segment = 'Mainline'
+                        lst_date = str(row.get('Listing Date', '-')).strip()
+                        price = str(row.get('Issue Price', '-')).strip()
+                        gain = str(row.get('Listing Gain', '-')).strip()
+                        ltp = str(row.get('LTP (Rs.)', '')).strip()
+                        if not ltp or ltp == 'nan':
+                            ltp = str(row.get('LTP', '-')).strip()
+                        if name and name != 'nan' and not name.startswith('---'):
+                            listed_list.append({
+                                "Company Name": name,
+                                "Segment": segment,
+                                "Listing Date": lst_date,
+                                "Issue Price": price,
+                                "Listing Gain": gain,
+                                "LTP": ltp
+                            })
+                            
+                # Check for Ongoing (has Total Subscription / Allotment Date)
+                elif any('total subscription' in c or 'allotment date' in c or 'refund date' in c for c in cols):
+                    # Make sure it's not the listed table (which also has total subscription sometimes)
+                    if not any('listing gain' in c or 'ltp' in c for c in cols):
+                        for _, row in t.iterrows():
+                            name = str(row.get('Company Name', '')).replace(' IPO', '').strip()
+                            segment = str(row.get('Unnamed: 1', 'Mainline')).strip()
+                            if segment == 'nan':
+                                segment = 'Mainline'
+                            price = str(row.get('Issue Price', 'TBD')).strip()
+                            sub = str(row.get('Total Subscription', '-')).strip()
+                            lst_date = str(row.get('Listing Date', '-')).strip()
+                            if name and name != 'nan' and not name.startswith('---'):
+                                ongoing_list.append({
+                                    "Company Name": name,
+                                    "Segment": segment,
+                                    "Issue Price": price,
+                                    "Subscription": sub,
+                                    "Listing Date": lst_date
+                                })
+            
+            ongoing_df = pd.DataFrame(ongoing_list)
+            listed_df = pd.DataFrame(listed_list)
+            upcoming_df = pd.DataFrame(upcoming_list)
 
             return {
                 "ongoing": ongoing_df if not ongoing_df.empty else fallback_ongoing,
