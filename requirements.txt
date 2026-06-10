@@ -4,3 +4,6 @@ numpy
 yfinance
 plotly
 requests
+statsmodels
+lxml
+nltk
