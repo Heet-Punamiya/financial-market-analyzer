@@ -295,13 +295,50 @@ def validate_stock_ticker(ticker):
     """Validate if a stock ticker exists and is accessible"""
     try:
         stock = yf.Ticker(ticker)
+        # 1. Fetch 1 day of historical data first (uses a light endpoint that is rarely rate-limited)
+        hist = stock.history(period="1d")
+        if not hist.empty:
+            current_price = hist['Close'].iloc[-1]
+            
+            # 2. Try to get name from the database locally first to avoid stock.info requests
+            long_name = None
+            for name, t in indian_stocks.ALL_STOCKS.items():
+                if t == ticker:
+                    long_name = name
+                    break
+            
+            # If not in local dict, try stock.info, but catch exceptions if rate-limited
+            if not long_name:
+                try:
+                    info = stock.info
+                    long_name = info.get('longName', ticker)
+                except:
+                    long_name = ticker
+            
+            return True, long_name, current_price
+            
+        # 3. Fallback: If history is empty, check info as a last resort
         info = stock.info
         if info and 'regularMarketPrice' in info:
             return True, info.get('longName', ticker), info.get('regularMarketPrice', 0)
-        else:
-            return False, "Invalid ticker or no data available", 0
+            
+        return False, "Invalid ticker or no data available", 0
     except Exception as e:
+        # Final fallback in case of rate limits: look up in local dictionary
+        try:
+            for name, t in indian_stocks.ALL_STOCKS.items():
+                if t == ticker:
+                    try:
+                        hist = yf.Ticker(ticker).history(period="1d")
+                        if not hist.empty:
+                            return True, name, hist['Close'].iloc[-1]
+                    except:
+                        pass
+                    return True, name, 0.0
+        except:
+            pass
         return False, f"Error validating ticker: {str(e)}", 0
+
 
 def calc_rsi(data, periods=14):
     close_delta = data['Close'].diff()
