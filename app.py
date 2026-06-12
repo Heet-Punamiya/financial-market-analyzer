@@ -290,6 +290,88 @@ if not st.session_state.logged_in:
         st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
+# -- Helper function for detailed charges bifurcation --
+def render_charges_invoice(tx):
+    val = tx["shares"] * tx["price"]
+    # Retrieve theme values dynamically
+    theme_card_bg = card_bg
+    theme_card_border = card_border
+    theme_text_color = text_color
+    theme_tab_text = tab_text
+    
+    st.markdown(f"""
+    <div style="background-color: {theme_card_bg}; border: 1px solid {theme_card_border}; border-radius: 8px; padding: 20px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid {theme_card_border}; padding-bottom: 10px; margin-bottom: 15px;">
+            <span style="font-weight: 700; font-size: 1.1rem; color: #00B386; font-family: 'Inter', sans-serif;">TAX INVOICE / CONTRACT NOTE</span>
+            <span style="color: {theme_tab_text}; font-size: 0.9rem; font-family: 'Inter', sans-serif;">{tx['timestamp']}</span>
+        </div>
+        <table style="width: 100%; font-size: 0.95rem; border-collapse: collapse; color: {theme_text_color}; font-family: 'Inter', sans-serif;">
+            <tr style="border-bottom: 1px dashed {theme_card_border};">
+                <td style="padding: 8px 0; font-weight: 600;">Stock Ticker</td>
+                <td style="padding: 8px 0; text-align: right; font-weight: 600;">{tx['ticker']}</td>
+            </tr>
+            <tr style="border-bottom: 1px dashed {theme_card_border};">
+                <td style="padding: 8px 0; font-weight: 600;">Action / Trade Type</td>
+                <td style="padding: 8px 0; text-align: right; font-weight: 600; color: {'#10B981' if tx['trade_type'] == 'BUY' else '#EF4444'};">{tx['trade_type']}</td>
+            </tr>
+            <tr style="border-bottom: 1px dashed {theme_card_border};">
+                <td style="padding: 6px 0;">Quantity</td>
+                <td style="padding: 6px 0; text-align: right;">{tx['shares']:.2f}</td>
+            </tr>
+            <tr style="border-bottom: 1px dashed {theme_card_border};">
+                <td style="padding: 6px 0;">Execution Price</td>
+                <td style="padding: 6px 0; text-align: right;">₹{tx['price']:,.2f}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid {theme_card_border}; font-weight: 600; background-color: rgba(0,0,0,0.02);">
+                <td style="padding: 10px 0;">Gross Trade Value</td>
+                <td style="padding: 10px 0; text-align: right;">₹{val:,.2f}</td>
+            </tr>
+            <tr><td colspan="2" style="height: 10px;"></td></tr>
+            <tr>
+                <td style="padding: 4px 0; color: {theme_tab_text}; font-size: 0.85rem;">Brokerage (0.03% or max ₹20)</td>
+                <td style="padding: 4px 0; text-align: right; font-size: 0.85rem;">₹{tx['brokerage']:.2f}</td>
+            </tr>
+            <tr>
+                <td style="padding: 4px 0; color: {theme_tab_text}; font-size: 0.85rem;">Securities Transaction Tax (STT - 0.1%)</td>
+                <td style="padding: 4px 0; text-align: right; font-size: 0.85rem;">₹{tx['stt']:.2f}</td>
+            </tr>
+            <tr>
+                <td style="padding: 4px 0; color: {theme_tab_text}; font-size: 0.85rem;">Exchange Transaction Charges (NSE - 0.00322%)</td>
+                <td style="padding: 4px 0; text-align: right; font-size: 0.85rem;">₹{tx['exchange_charges']:.2f}</td>
+            </tr>
+            <tr>
+                <td style="padding: 4px 0; color: {theme_tab_text}; font-size: 0.85rem;">SEBI Turnover Fees (0.0001%)</td>
+                <td style="padding: 4px 0; text-align: right; font-size: 0.85rem;">₹{tx['sebi_fees']:.4f}</td>
+            </tr>
+            <tr>
+                <td style="padding: 4px 0; color: {theme_tab_text}; font-size: 0.85rem;">GST (18% of Brokerage + Exchange + SEBI)</td>
+                <td style="padding: 4px 0; text-align: right; font-size: 0.85rem;">₹{tx['gst']:.2f}</td>
+            </tr>
+            <tr>
+                <td style="padding: 4px 0; color: {theme_tab_text}; font-size: 0.85rem;">Stamp Duty (0.015% - BUY only)</td>
+                <td style="padding: 4px 0; text-align: right; font-size: 0.85rem;">₹{tx['stamp_duty']:.2f}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid {theme_card_border};">
+                <td style="padding: 4px 0; color: {theme_tab_text}; font-size: 0.85rem;">DP Charges (₹13.5 + GST - SELL only)</td>
+                <td style="padding: 4px 0; text-align: right; font-size: 0.85rem;">₹{tx['dp_charges']:.2f}</td>
+            </tr>
+            <tr style="font-weight: 700; font-size: 1.05rem; background-color: rgba(239, 68, 68, 0.03);">
+                <td style="padding: 10px 0; color: {theme_text_color};">Total Charges & Taxes</td>
+                <td style="padding: 10px 0; text-align: right; color: #EF4444;">₹{tx['total_charges']:.2f}</td>
+            </tr>
+            <tr style="font-weight: 700; font-size: 1.1rem; border-top: 1px solid {theme_card_border}; background-color: rgba(16, 185, 129, 0.03);">
+                <td style="padding: 10px 0; color: {theme_text_color};">Net Settlement Value</td>
+                <td style="padding: 10px 0; text-align: right; color: {'#10B981' if tx['trade_type'] == 'BUY' else '#00B386'};">
+                    ₹{val + tx['total_charges'] if tx['trade_type'] == 'BUY' else val - tx['total_charges']:,.2f}
+                </td>
+            </tr>
+        </table>
+        <div style="font-size: 0.75rem; color: {theme_tab_text}; margin-top: 15px; text-align: center; font-style: italic;">
+            * Calculated as per SEBI regulations & Indian stock market delivery equity standards.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
 # -- Helper Functions for Tech Analysis --
 def get_tradingview_widget_html(ticker, theme="dark"):
     # Ensure ticker is uppercase and stripped
@@ -1147,58 +1229,208 @@ if ticker:
                         st.write("Sell Asset")
                         p_ticker_s = st.text_input("Ticker", ticker).upper()
                         p_shares_s = st.number_input("Shares to Sell", min_value=0.01, value=10.0)
+                        p_price_s = st.number_input("Sell Price", min_value=0.01, value=float(current_price))
                         if st.form_submit_button("Sell"):
-                            if auth.sell_portfolio_item(st.session_state.username, p_ticker_s, p_shares_s):
+                            if auth.sell_portfolio_item(st.session_state.username, p_ticker_s, p_shares_s, p_price_s):
                                 st.success(f"Sold {p_shares_s} shares of {p_ticker_s}!")
                                 st.rerun()
                             else:
                                 st.error("Failed to sell asset. Check your holdings.")
                                 
-                portfolio_items = auth.get_portfolio(st.session_state.username)
+                # Fetch data
+                transactions = auth.get_transactions(st.session_state.username)
                 
-                if portfolio_items:
-                    st.markdown("### Current Holdings")
-                    port_df = pd.DataFrame([{"Ticker": p["ticker"], "Shares": p["shares"], "Avg Price": p["buy_price"]} for p in portfolio_items])
+                # Perform chronological calculation of realized P&L, holdings, charges
+                realized_gross_pl = 0.0
+                total_charges_paid = 0.0
+                holdings_calculated = {}
+                all_traded_stocks = {}
+                
+                if transactions:
+                    # Sort transactions chronologically
+                    sorted_txs = sorted(transactions, key=lambda x: x.get('timestamp', ''))
+                    for tx in sorted_txs:
+                        t_ticker = tx['ticker'].upper()
+                        t_type = tx['trade_type'].upper()
+                        t_shares = float(tx['shares'])
+                        t_price = float(tx['price'])
+                        t_chg = float(tx['total_charges'])
+                        
+                        total_charges_paid += t_chg
+                        
+                        if t_ticker not in holdings_calculated:
+                            holdings_calculated[t_ticker] = {"shares": 0.0, "avg_price": 0.0}
+                        if t_ticker not in all_traded_stocks:
+                            all_traded_stocks[t_ticker] = {"total_bought": 0.0, "total_sold": 0.0, "realized_pl": 0.0, "total_charges": 0.0}
+                            
+                        curr = holdings_calculated[t_ticker]
+                        stats = all_traded_stocks[t_ticker]
+                        stats["total_charges"] += t_chg
+                        
+                        if t_type == 'BUY':
+                            stats["total_bought"] += t_shares
+                            old_shares = curr["shares"]
+                            old_avg = curr["avg_price"]
+                            new_shares = old_shares + t_shares
+                            if new_shares > 0:
+                                curr["avg_price"] = (old_shares * old_avg + t_shares * t_price) / new_shares
+                            curr["shares"] = new_shares
+                        elif t_type == 'SELL':
+                            stats["total_sold"] += t_shares
+                            avg_buy = curr["avg_price"]
+                            trade_realized_pl = t_shares * (t_price - avg_buy)
+                            realized_gross_pl += trade_realized_pl
+                            stats["realized_pl"] += trade_realized_pl
+                            
+                            curr["shares"] = max(0.0, curr["shares"] - t_shares)
+                            if curr["shares"] == 0.0:
+                                curr["avg_price"] = 0.0
+
+                # Fetch active tickers current prices
+                active_tickers = [t for t, h in holdings_calculated.items() if h["shares"] > 0]
+                current_prices = {}
+                if active_tickers:
+                    from concurrent.futures import ThreadPoolExecutor
                     
-                    # Group by ticker to show aggregated holdings
-                    port_df['Total Invested'] = port_df['Shares'] * port_df['Avg Price']
-                    grouped_df = port_df.groupby('Ticker').agg({'Shares': 'sum', 'Total Invested': 'sum'}).reset_index()
-                    grouped_df['Avg Price'] = grouped_df['Total Invested'] / grouped_df['Shares']
-                    
-                    # Fetch current prices for portfolio
-                    current_prices = []
-                    for t in grouped_df['Ticker'].unique():
+                    def get_single_price(t):
                         try:
                             td = yf.Ticker(t).history(period="1d")
-                            cp = td['Close'].iloc[-1] if not td.empty else 0
-                            current_prices.append({"Ticker": t, "Current Price": cp})
+                            if not td.empty:
+                                return t, float(td['Close'].iloc[-1])
                         except:
-                            current_prices.append({"Ticker": t, "Current Price": 0})
-                            
-                    cp_df = pd.DataFrame(current_prices)
-                    grouped_df = grouped_df.merge(cp_df, on='Ticker', how='left')
+                            pass
+                        return t, 0.0
+                        
+                    with ThreadPoolExecutor(max_workers=10) as executor:
+                        results = executor.map(get_single_price, active_tickers)
+                        for t, price in results:
+                            current_prices[t] = price
+
+                # Calculate unrealized metrics and active holdings table data
+                unrealized_gross_pl = 0.0
+                total_current_value = 0.0
+                total_invested_value = 0.0
+                est_sell_charges = 0.0
+                active_rows = []
+                
+                for t in active_tickers:
+                    h = holdings_calculated[t]
+                    shares = h["shares"]
+                    avg_buy = h["avg_price"]
+                    cp = current_prices.get(t, 0.0)
+                    if cp == 0.0:
+                        cp = avg_buy
                     
-                    grouped_df['Current Value'] = grouped_df['Shares'] * grouped_df['Current Price']
-                    grouped_df['Profit/Loss'] = grouped_df['Current Value'] - grouped_df['Total Invested']
-                    grouped_df['Return %'] = (grouped_df['Profit/Loss'] / grouped_df['Total Invested']) * 100
+                    invested = shares * avg_buy
+                    curr_val = shares * cp
+                    gross_pl = curr_val - invested
                     
-                    # Format for display
-                    display_df = grouped_df.copy()
-                    for col in ['Avg Price', 'Current Price', 'Total Invested', 'Current Value', 'Profit/Loss']:
-                        display_df[col] = display_df[col].apply(lambda x: f"₹{x:,.2f}")
-                    display_df['Return %'] = display_df['Return %'].apply(lambda x: f"{x:,.2f}%")
+                    # Estimate sell charges if liquidated today
+                    chg_dict = auth.calculate_charges("SELL", shares, cp)
+                    esc = chg_dict["total"]
+                    est_sell_charges += esc
                     
-                    st.dataframe(display_df)
+                    net_pl = gross_pl - esc
+                    ret_pct = (gross_pl / invested) * 100 if invested > 0 else 0.0
                     
-                    total_invested = grouped_df['Total Invested'].sum()
-                    total_value = grouped_df['Current Value'].sum()
-                    total_pl = grouped_df['Profit/Loss'].sum()
-                    pl_pct = (total_pl / total_invested) * 100 if total_invested > 0 else 0
+                    unrealized_gross_pl += gross_pl
+                    total_current_value += curr_val
+                    total_invested_value += invested
                     
-                    st.markdown("### Portfolio Summary")
-                    pc1, pc2, pc3 = st.columns(3)
-                    pc1.metric("Total Invested", f"₹{total_invested:,.2f}")
-                    pc2.metric("Current Value", f"₹{total_value:,.2f}", f"{total_pl:,.2f} ({pl_pct:.2f}%)", delta_color="normal" if total_pl >= 0 else "inverse")
+                    active_rows.append({
+                        "Ticker": t,
+                        "Shares": f"{shares:.2f}",
+                        "Avg Price": f"₹{avg_buy:,.2f}",
+                        "Total Invested": f"₹{invested:,.2f}",
+                        "Current Price": f"₹{cp:,.2f}",
+                        "Current Value": f"₹{curr_val:,.2f}",
+                        "Gross P&L": f"₹{gross_pl:,.2f}",
+                        "Est. Sell Charges": f"₹{esc:,.2f}",
+                        "Net P&L": f"₹{net_pl:,.2f}",
+                        "Return %": f"{ret_pct:,.2f}%"
+                    })
+
+                total_gross_pl = unrealized_gross_pl + realized_gross_pl
+                total_charges_all = total_charges_paid + est_sell_charges
+                net_profit_in_hand = total_gross_pl - total_charges_all
+
+                # --- Overview Metrics ---
+                st.markdown("### Portfolio Overview")
+                m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+                
+                m_col1.metric("Active Invested Value", f"₹{total_invested_value:,.2f}")
+                m_col2.metric("Active Current Value", f"₹{total_current_value:,.2f}", f"₹{unrealized_gross_pl:,.2f} ({ (unrealized_gross_pl / total_invested_value * 100) if total_invested_value > 0 else 0.0 :.2f}%)")
+                m_col3.metric(
+                    label="Net Profit In Hand",
+                    value=f"₹{net_profit_in_hand:,.2f}",
+                    delta=f"Gross P&L: ₹{total_gross_pl:,.2f}",
+                    delta_color="normal" if net_profit_in_hand >= 0 else "inverse"
+                )
+                m_col4.metric(
+                    label="Total Charges & Taxes",
+                    value=f"₹{total_charges_all:,.2f}",
+                    delta=f"Est. Sell Chg: ₹{est_sell_charges:,.2f}",
+                    delta_color="inverse"
+                )
+
+                # --- Active Holdings ---
+                st.markdown("### Current Holdings")
+                if active_rows:
+                    st.dataframe(pd.DataFrame(active_rows), use_container_width=True)
+                else:
+                    st.info("No active holdings in your portfolio.")
+
+                # --- Traded Stocks Summary ---
+                st.markdown("### Traded Stocks Summary")
+                if all_traded_stocks:
+                    traded_rows = []
+                    for t, stats in all_traded_stocks.items():
+                        h = holdings_calculated.get(t, {"shares": 0.0})
+                        current_shares = h["shares"]
+                        gross_realized = stats["realized_pl"]
+                        chg_paid = stats["total_charges"]
+                        net_realized = gross_realized - chg_paid
+                        
+                        traded_rows.append({
+                            "Ticker": t,
+                            "Total Bought": f"{stats['total_bought']:.2f}",
+                            "Total Sold": f"{stats['total_sold']:.2f}",
+                            "Current Position": f"{current_shares:.2f}",
+                            "Realized Gross P&L": f"₹{gross_realized:,.2f}",
+                            "Charges Paid": f"₹{chg_paid:,.2f}",
+                            "Net Realized P&L": f"₹{net_realized:,.2f}"
+                        })
+                    st.dataframe(pd.DataFrame(traded_rows), use_container_width=True)
+                else:
+                    st.info("No transaction history available.")
+
+                # --- Transaction History ---
+                st.markdown("### Detailed Transaction History")
+                if transactions:
+                    tx_display = []
+                    for idx, tx in enumerate(transactions):
+                        val = tx["shares"] * tx["price"]
+                        tx_display.append({
+                            "Index": idx + 1,
+                            "Date & Time": tx["timestamp"],
+                            "Ticker": tx["ticker"],
+                            "Action": tx["trade_type"],
+                            "Shares": f"{tx['shares']:.2f}",
+                            "Price": f"₹{tx['price']:,.2f}",
+                            "Trade Value": f"₹{val:,.2f}",
+                            "Total Charges": f"₹{tx['total_charges']:,.2f}"
+                        })
+                    st.dataframe(pd.DataFrame(tx_display), use_container_width=True)
+                    
+                    st.markdown("#### 🔍 Tax Invoice & Charges Bifurcation")
+                    tx_options = [f"#{idx + 1}: {tx['trade_type']} {tx['shares']:.2f} {tx['ticker']} @ ₹{tx['price']} on {tx['timestamp']}" for idx, tx in enumerate(transactions)]
+                    selected_tx_str = st.selectbox("Select a transaction to inspect charges invoice", tx_options)
+                    if selected_tx_str:
+                        selected_idx = tx_options.index(selected_tx_str)
+                        selected_tx = transactions[selected_idx]
+                        render_charges_invoice(selected_tx)
+                else:
+                    st.info("No transactions logged yet.")
 
             # ==========================================
             # TAB 6: BACKTESTER
