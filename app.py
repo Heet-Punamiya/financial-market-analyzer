@@ -339,6 +339,68 @@ def get_tradingview_widget_html(ticker, theme="dark"):
     """
     return html_code
 
+@st.fragment(run_every=5.0)
+def render_live_header(ticker, company_name, card_border, text_color):
+    try:
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="1d")
+        if not hist.empty:
+            current_price = hist['Close'].iloc[-1]
+            prev_price = hist['Close'].iloc[-2] if len(hist) > 1 else current_price
+            if len(hist) < 2:
+                hist5 = stock.history(period="5d")
+                if len(hist5) > 1:
+                    prev_price = hist5['Close'].iloc[-2]
+            price_diff = current_price - prev_price
+            price_pct = (price_diff / prev_price) * 100
+        else:
+            current_price, price_diff, price_pct = 0.0, 0.0, 0.0
+    except:
+        current_price, price_diff, price_pct = 0.0, 0.0, 0.0
+        
+    arrow = "▲" if price_diff >= 0 else "▼"
+    p_color = "#00B386" if price_diff >= 0 else "#EB5B3C"
+
+    st.markdown(f"""
+    <div style="display:flex; align-items:center; justify-content:space-between;
+                padding: 20px 0 12px; border-bottom: 1px solid {card_border}; margin-bottom:20px;">
+        <div>
+            <div style="font-size:0.8rem; color:#8b949e; text-transform:uppercase; letter-spacing:1px;">
+                NSE &bull; EQUITY
+            </div>
+            <div style="font-size:2rem; font-weight:800; color:{text_color};">{company_name}</div>
+            <div style="font-size:0.85rem; color:#8b949e;">{ticker}</div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-size:2.2rem; font-weight:800; color:{text_color};">₹{current_price:,.2f}</div>
+            <div style="font-size:1rem; font-weight:600; color:{p_color};">
+                {arrow} ₹{abs(price_diff):,.2f} ({abs(price_pct):.2f}%)
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+@st.fragment(run_every=5.0)
+def render_live_price_metric(ticker):
+    try:
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="1d")
+        if not hist.empty:
+            current_p = hist['Close'].iloc[-1]
+            prev_p = hist['Close'].iloc[-2] if len(hist) > 1 else current_p
+            if len(hist) < 2:
+                hist5 = stock.history(period="5d")
+                if len(hist5) > 1:
+                    prev_p = hist5['Close'].iloc[-2]
+            price_chg = current_p - prev_p
+            pct_chg = (price_chg / prev_p) * 100
+        else:
+            current_p, price_chg, pct_chg = 0.0, 0.0, 0.0
+    except:
+        current_p, price_chg, pct_chg = 0.0, 0.0, 0.0
+        
+    st.metric("Current Price", f"₹{current_p:.2f}", f"{price_chg:.2f} ({pct_chg:.2f}%)")
+
 def validate_stock_ticker(ticker):
     """Validate if a stock ticker exists and is accessible"""
     try:
@@ -602,32 +664,8 @@ if ticker:
         if stock_data.empty:
             st.error(f"Could not fetch data for ticker: {ticker}. Please check the symbol.")
         else:
-            # Professional header
-            prev_price = stock_data['Close'].iloc[-2] if len(stock_data) > 1 else stock_data['Close'].iloc[-1]
-            current_price = stock_data['Close'].iloc[-1]
-            price_diff = current_price - prev_price
-            price_pct  = (price_diff / prev_price) * 100
-            arrow = "▲" if price_diff >= 0 else "▼"
-            p_color = "#00B386" if price_diff >= 0 else "#EB5B3C"
-
-            st.markdown(f"""
-            <div style="display:flex; align-items:center; justify-content:space-between;
-                        padding: 20px 0 12px; border-bottom: 1px solid {card_border}; margin-bottom:20px;">
-                <div>
-                    <div style="font-size:0.8rem; color:#8b949e; text-transform:uppercase; letter-spacing:1px;">
-                        NSE &bull; EQUITY
-                    </div>
-                    <div style="font-size:2rem; font-weight:800; color:{text_color};">{selected_company}</div>
-                    <div style="font-size:0.85rem; color:#8b949e;">{ticker}</div>
-                </div>
-                <div style="text-align:right;">
-                    <div style="font-size:2.2rem; font-weight:800; color:{text_color};">₹{current_price:,.2f}</div>
-                    <div style="font-size:1rem; font-weight:600; color:{p_color};">
-                        {arrow} ₹{abs(price_diff):,.2f} ({abs(price_pct):.2f}%)
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            # Professional live header (auto-updates every 5s)
+            render_live_header(ticker, selected_company, card_border, text_color)
             tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
                 "Overview", 
                 "Technical Analysis", 
@@ -651,7 +689,8 @@ if ticker:
                 pct_change = (price_change / prev_price) * 100
                 
                 col1, col2, col3, col4 = st.columns(4)
-                col1.metric("Current Price", f"₹{current_price:.2f}", f"{price_change:.2f} ({pct_change:.2f}%)")
+                with col1:
+                    render_live_price_metric(ticker)
                 
                 avg_sentiment = 0
                 if not analyzed_news.empty:
