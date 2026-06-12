@@ -838,6 +838,108 @@ if ticker:
                     col4.metric("Articles Analyzed", 0)
                 
                 st.markdown("<br>", unsafe_allow_html=True)
+
+                # --- Quick Trade & Holdings Section ---
+                st.markdown("---")
+                st.markdown("### 💼 Quick Trade & Holdings")
+                
+                # Fetch transactions to compute holdings
+                qt_transactions = auth.get_transactions(st.session_state.username)
+                qt_holdings = {}
+                if qt_transactions:
+                    sorted_txs = sorted(qt_transactions, key=lambda x: x.get('timestamp', ''))
+                    for tx in sorted_txs:
+                        t_ticker = tx['ticker'].upper()
+                        t_type = tx['trade_type'].upper()
+                        t_shares = float(tx['shares'])
+                        t_price = float(tx['price'])
+                        if t_ticker not in qt_holdings:
+                            qt_holdings[t_ticker] = {"shares": 0.0, "avg_price": 0.0}
+                        curr = qt_holdings[t_ticker]
+                        if t_type == 'BUY':
+                            old_shares = curr["shares"]
+                            old_avg = curr["avg_price"]
+                            new_shares = old_shares + t_shares
+                            if new_shares > 0:
+                                curr["avg_price"] = (old_shares * old_avg + t_shares * t_price) / new_shares
+                            curr["shares"] = new_shares
+                        elif t_type == 'SELL':
+                            curr["shares"] = max(0.0, curr["shares"] - t_shares)
+                            if curr["shares"] == 0.0:
+                                curr["avg_price"] = 0.0
+                
+                # Filter active holdings
+                active_qt_holdings = {t: h for t, h in qt_holdings.items() if h["shares"] > 0}
+                
+                # 1. Holdings Info Card
+                st.markdown("#### Portfolio Status")
+                held_shares = 0.0
+                held_avg = 0.0
+                ticker_upper = ticker.upper()
+                
+                if ticker_upper in active_qt_holdings:
+                    held_shares = active_qt_holdings[ticker_upper]["shares"]
+                    held_avg = active_qt_holdings[ticker_upper]["avg_price"]
+                    st.success(f"You currently hold **{held_shares:.2f}** shares of **{ticker_upper}** (Avg. Buy Price: ₹{held_avg:,.2f})")
+                else:
+                    st.info(f"You currently hold **0** shares of **{ticker_upper}**")
+                
+                # List other holdings
+                other_holdings = [f"**{t}** ({h['shares']:.2f} shares @ ₹{h['avg_price']:,.2f})" for t, h in active_qt_holdings.items() if t != ticker_upper]
+                if other_holdings:
+                    st.markdown(f"**Other Holdings in Portfolio:** {', '.join(other_holdings)}")
+                else:
+                    if ticker_upper not in active_qt_holdings and len(active_qt_holdings) > 0:
+                        all_other = [f"**{t}** ({h['shares']:.2f} shares @ ₹{h['avg_price']:,.2f})" for t, h in active_qt_holdings.items()]
+                        st.markdown(f"**Other Holdings in Portfolio:** {', '.join(all_other)}")
+                    elif len(active_qt_holdings) == 0:
+                        st.caption("Your portfolio is currently empty.")
+                
+                # 2. Buy/Sell controls
+                trade_col1, trade_col2, trade_col3, trade_col4 = st.columns([1, 1, 1, 1])
+                with trade_col1:
+                    qty = st.number_input("Trade Shares", min_value=0.01, value=10.0, step=1.0, key=f"qty_{ticker}")
+                with trade_col2:
+                    price_val = st.number_input("Trade Price (₹)", min_value=0.01, value=float(current_price), step=0.05, key=f"price_{ticker}")
+                
+                # Calculate charges for live preview
+                buy_chg = auth.calculate_charges("BUY", qty, price_val)
+                sell_chg = auth.calculate_charges("SELL", qty, price_val)
+                
+                with trade_col3:
+                    st.write("") # padding
+                    st.write("")
+                    if st.button("Instant BUY", use_container_width=True, key=f"btn_buy_{ticker}", type="primary"):
+                        if auth.buy_portfolio_item(st.session_state.username, ticker_upper, qty, price_val):
+                            st.success(f"Bought {qty} shares of {ticker_upper}!")
+                            st.rerun()
+                        else:
+                            st.error("Instant BUY failed.")
+                            
+                with trade_col4:
+                    st.write("") # padding
+                    st.write("")
+                    if st.button("Instant SELL", use_container_width=True, key=f"btn_sell_{ticker}"):
+                        if auth.sell_portfolio_item(st.session_state.username, ticker_upper, qty, price_val):
+                            st.success(f"Sold {qty} shares of {ticker_upper}!")
+                            st.rerun()
+                        else:
+                            st.error(f"Instant SELL failed. Check if you hold at least {qty} shares of {ticker_upper}.")
+                
+                # Show charges live preview
+                st.markdown(f"""
+                <div style="background-color: {card_bg}; border: 1px solid {card_border}; border-radius: 8px; padding: 12px 15px; margin-top: 10px; font-size: 0.88rem;">
+                    <span style="font-weight: 700; color: #00B386;">Estimated Transaction Charges:</span><br>
+                    <strong>If Buying:</strong> Total Charges: <span style="color: #EF4444;">₹{buy_chg['total']:.2f}</span> 
+                    (Brokerage: ₹{buy_chg['brokerage']:.2f}, STT: ₹{buy_chg['stt']:.2f}, GST: ₹{buy_chg['gst']:.2f}, Stamp Duty: ₹{buy_chg['stamp_duty']:.2f})<br>
+                    <strong>If Selling:</strong> Total Charges: <span style="color: #EF4444;">₹{sell_chg['total']:.2f}</span> 
+                    (Brokerage: ₹{sell_chg['brokerage']:.2f}, STT: ₹{sell_chg['stt']:.2f}, GST: ₹{sell_chg['gst']:.2f}, DP Charges: ₹{sell_chg['dp_charges']:.2f})
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown("---")
+                st.markdown("<br>", unsafe_allow_html=True)
+
                 # Split next section into 2 columns: Left for Fundamentals & Signal, Right for AI Summary
                 main_col1, main_col2 = st.columns([1, 1.5])
                 
