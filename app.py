@@ -370,6 +370,130 @@ def get_tradingview_widget_html(ticker, theme="dark"):
     """
     return html_code
 
+
+def get_lightweight_chart_html(stock_data, theme="dark"):
+    import json
+    # Convert dataframe to JSON list of candles
+    candles = []
+    df = stock_data.copy()
+    if 'Date' not in df.columns:
+        df = df.reset_index()
+        
+    for _, row in df.iterrows():
+        dt = row['Date']
+        if isinstance(dt, str):
+            date_str = dt.split(" ")[0]
+        else:
+            date_str = dt.strftime("%Y-%m-%d")
+        
+        candles.append({
+            "time": date_str,
+            "open": float(row['Open']),
+            "high": float(row['High']),
+            "low": float(row['Low']),
+            "close": float(row['Close']),
+            "volume": float(row['Volume']) if 'Volume' in row else 0.0
+        })
+    
+    candles_json = json.dumps(candles)
+    
+    bg_color = "#121622" if theme == "Dark Mode" else "#FFFFFF"
+    text_color = "#ECEFF4" if theme == "Dark Mode" else "#1E293B"
+    grid_color = "rgba(30, 37, 56, 0.4)" if theme == "Dark Mode" else "rgba(226, 232, 240, 0.4)"
+    
+    html_code = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+        <style>
+            html, body {{
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                background-color: {bg_color};
+                overflow: hidden;
+            }}
+            #chart-container {{
+                width: 100%;
+                height: 100%;
+            }}
+        </style>
+    </head>
+    <body>
+        <div id="chart-container"></div>
+        <script>
+            const chartOptions = {{
+                layout: {{
+                    textColor: '{text_color}',
+                    background: {{ type: 'solid', color: '{bg_color}' }},
+                }},
+                grid: {{
+                    vertLines: {{ color: '{grid_color}' }},
+                    horzLines: {{ color: '{grid_color}' }},
+                }},
+                width: window.innerWidth,
+                height: window.innerHeight,
+                crosshair: {{
+                    mode: 0,
+                }},
+                timeScale: {{
+                    borderColor: '{grid_color}',
+                    barSpacing: 10,
+                }},
+            }};
+            
+            const container = document.getElementById('chart-container');
+            const chart = LightweightCharts.createChart(container, chartOptions);
+            
+            const candlestickSeries = chart.addCandlestickSeries({{
+                upColor: '#26a69a',
+                downColor: '#ef5350',
+                borderVisible: false,
+                wickUpColor: '#26a69a',
+                wickDownColor: '#ef5350',
+            }});
+            
+            const data = {candles_json};
+            candlestickSeries.setData(data);
+            
+            // Add Volume series
+            const volumeSeries = chart.addHistogramSeries({{
+                color: '#26a69a',
+                priceFormat: {{
+                    type: 'volume',
+                }},
+                priceScaleId: '', // overlay
+            }});
+            
+            chart.priceScale('').applyOptions({{
+                scaleMargins: {{
+                    top: 0.8,
+                    bottom: 0,
+                }},
+            }});
+            
+            const volumeData = data.map(d => ({{
+                time: d.time,
+                value: d.volume,
+                color: d.close >= d.open ? 'rgba(38, 166, 154, 0.4)' : 'rgba(239, 83, 80, 0.4)'
+            }}));
+            volumeSeries.setData(volumeData);
+            
+            chart.timeScale().fitContent();
+            
+            window.addEventListener('resize', () => {{
+                chart.resize(window.innerWidth, window.innerHeight);
+            }});
+        </script>
+    </body>
+    </html>
+    """
+    return html_code
+
+
 @st.fragment(run_every=5.0)
 def render_live_header(ticker, company_name, card_border, text_color):
     try:
@@ -835,11 +959,22 @@ if ticker:
                         st.info("Not enough recent news to generate an AI summary.")
 
                 st.markdown("<br>", unsafe_allow_html=True)
-                # Interactive TradingView Chart (with drawing tools)
-                st.markdown("### Interactive Chart (with Drawing Tools & Indicators)")
-                tv_html = get_tradingview_widget_html(ticker, theme_choice)
-                with st.container(key=f"tv_chart_container_{ticker}_{theme_choice.replace(' ', '_').lower()}"):
-                    st.components.v1.html(tv_html, height=900)
+                # Chart Engine Selector
+                chart_engine = st.radio(
+                    "Select Chart Engine",
+                    ["TradingView Cloud Widget", "Local High-Performance Chart (Bypasses licensing blocks/works 100%)"],
+                    horizontal=True,
+                    help="Some stock charts (like Apollo) may be blocked from embedding by TradingView. Switch to the Local Chart to view it here without errors."
+                )
+                
+                if chart_engine == "TradingView Cloud Widget":
+                    tv_html = get_tradingview_widget_html(ticker, theme_choice)
+                    with st.container(key=f"tv_chart_container_{ticker}_{theme_choice.replace(' ', '_').lower()}"):
+                        st.components.v1.html(tv_html, height=900)
+                else:
+                    lw_html = get_lightweight_chart_html(stock_data, theme_choice)
+                    with st.container(key=f"lw_chart_container_{ticker}_{theme_choice.replace(' ', '_').lower()}"):
+                        st.components.v1.html(lw_html, height=850)
                 
                 # News
                 st.subheader("Recent Headlines")
