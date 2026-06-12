@@ -291,6 +291,54 @@ if not st.session_state.logged_in:
     st.stop()
 
 # -- Helper Functions for Tech Analysis --
+def get_tradingview_widget_html(ticker, theme="dark"):
+    # Convert yfinance ticker (e.g. RELIANCE.NS) to TradingView symbol (e.g. NSE:RELIANCE)
+    symbol = ticker
+    if ticker.endswith(".NS"):
+        symbol = "NSE:" + ticker[:-3]
+    elif ticker.endswith(".BO"):
+        symbol = "BSE:" + ticker[:-3]
+    else:
+        symbol = "NSE:" + ticker
+        
+    theme_str = "dark" if theme == "Dark Mode" else "light"
+    
+    html_code = f"""
+    <style>
+      html, body {{
+        height: 850px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }}
+      .tradingview-widget-container, #tradingview_chart {{
+        height: 850px !important;
+        width: 100% !important;
+      }}
+    </style>
+    <div class="tradingview-widget-container">
+      <div id="tradingview_chart"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+      <script type="text/javascript">
+      new TradingView.widget({{
+        "width": "100%",
+        "height": 850,
+        "symbol": "{symbol}",
+        "interval": "D",
+        "timezone": "Asia/Kolkata",
+        "theme": "{theme_str}",
+        "style": "1",
+        "locale": "en",
+        "enable_publishing": false,
+        "hide_side_toolbar": false,
+        "allow_symbol_change": true,
+        "container_id": "tradingview_chart"
+      }});
+      </script>
+    </div>
+    """
+    return html_code
+
 def validate_stock_ticker(ticker):
     """Validate if a stock ticker exists and is accessible"""
     try:
@@ -376,84 +424,62 @@ if st.sidebar.button("Logout"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Stock Selection**")
 
-# Enhanced stock selection with search functionality
-st.sidebar.markdown("### Search & Select Stock")
-search_query = st.sidebar.text_input(
-    "Search by company name or ticker",
-    placeholder="e.g., Reliance, TCS, ZOMATO.NS",
-    help="Type company name or ticker symbol. Supports NSE (.NS) and BSE (.BO) stocks."
-).strip()
-
-# Get all available stocks for suggestions
+# Get all available stocks for selection
 all_stocks = indian_stocks.ALL_STOCKS.copy()
-# Remove the custom entry
 if "Custom/Other (Type Below)" in all_stocks:
     del all_stocks["Custom/Other (Type Below)"]
 elif "🔍 Custom/Other (Type Below)" in all_stocks:
     del all_stocks["🔍 Custom/Other (Type Below)"]
 
-# Filter stocks based on search query
-if search_query:
-    # Search in company names (case-insensitive)
-    name_matches = {name: ticker for name, ticker in all_stocks.items()
-                   if search_query.lower() in name.lower()}
+# Handle external selections (browse list, watchlist, recents) BEFORE the selectbox is rendered
+if 'selected_ticker' in st.session_state:
+    ticker = st.session_state.selected_ticker
+    selected_company = st.session_state.selected_company
+    del st.session_state.selected_ticker
+    del st.session_state.selected_company
+    st.session_state.current_stock_company = selected_company
+elif 'external_selected_company' in st.session_state:
+    selected_company = st.session_state.external_selected_company
+    ticker = all_stocks.get(selected_company, selected_company)
+    del st.session_state.external_selected_company
+    st.session_state.current_stock_company = selected_company
 
-    # Search in tickers (case-insensitive)
-    ticker_matches = {name: ticker for name, ticker in all_stocks.items()
-                     if search_query.upper() in ticker.replace('.NS', '').replace('.BO', '').upper()}
+if 'current_stock_company' not in st.session_state:
+    st.session_state.current_stock_company = "Reliance Industries Ltd"
 
-    # Combine and deduplicate matches
-    filtered_stocks = {**name_matches, **ticker_matches}
+# Ensure current_stock_company is in all_stocks keys
+if st.session_state.current_stock_company not in all_stocks:
+    found = False
+    for k, v in all_stocks.items():
+        if v == st.session_state.current_stock_company:
+            st.session_state.current_stock_company = k
+            found = True
+            break
+    if not found:
+        # If it's a custom ticker, add it to all_stocks dynamically
+        all_stocks[st.session_state.current_stock_company] = st.session_state.current_stock_company
 
-    if filtered_stocks:
-        st.sidebar.markdown("**Suggested matches:**")
-        selected_from_suggestions = st.sidebar.selectbox(
-            "Select from suggestions:",
-            options=list(filtered_stocks.keys()),
-            format_func=lambda x: f"{x} ({filtered_stocks[x]})",
-            key="suggestions"
-        )
-        if selected_from_suggestions:
-            selected_company = selected_from_suggestions
-            ticker = filtered_stocks[selected_from_suggestions]
-        else:
-            selected_company = search_query
-            ticker = search_query.upper()
-    else:
-        # No matches found, treat as custom ticker
-        selected_company = search_query
-        ticker = search_query.upper()
-        st.sidebar.info("No matches found. Using as custom ticker.")
-else:
-    # No search query - show popular stocks
-    st.sidebar.markdown("**Popular Stocks:**")
-    popular_stocks = ["Reliance Industries Ltd", "Tata Consultancy Services Ltd",
-                     "HDFC Bank Ltd", "ICICI Bank Ltd", "Infosys Ltd"]
-    selected_popular = st.sidebar.selectbox(
-        "Quick select:",
-        options=popular_stocks,
-        format_func=lambda x: f"{x} ({all_stocks.get(x, 'N/A')})",
-        key="popular"
-    )
-    if selected_popular:
-        selected_company = selected_popular
-        ticker = all_stocks.get(selected_popular, selected_popular.upper())
-    else:
-        selected_company = "Reliance Industries Ltd"  # Default
-        ticker = all_stocks.get(selected_company, "RELIANCE.NS")
+options_list = list(all_stocks.keys())
+try:
+    default_index = options_list.index(st.session_state.current_stock_company)
+except ValueError:
+    default_index = 0
 
-# Custom ticker input option
-st.sidebar.markdown("### Or Enter Custom Ticker")
-custom_ticker = st.sidebar.text_input(
-    "Direct ticker entry:",
-    placeholder="e.g., ETERNAL.NS, RELIANCE.BO",
-    help="Enter any NSE (.NS) or BSE (.BO) ticker symbol"
-).strip().upper()
+selected_company = st.sidebar.selectbox(
+    "Search & Select Stock",
+    options=options_list,
+    index=default_index,
+    format_func=lambda x: f"{x} ({all_stocks[x]})" if all_stocks[x] != x else x,
+    key="stock_selectbox_key",
+    help="Type 2-3 letters of the stock name or ticker to filter"
+)
 
-if custom_ticker:
-    ticker = custom_ticker
-    selected_company = custom_ticker
-    st.sidebar.success(f"Using custom ticker: {ticker}")
+# Update state if changed via selectbox
+if selected_company != st.session_state.current_stock_company:
+    st.session_state.current_stock_company = selected_company
+    st.rerun()
+
+ticker = all_stocks[selected_company]
 
 # Period selector (added to define 'period' and fix NameError)
 period = st.sidebar.selectbox(
@@ -532,28 +558,30 @@ if ticker not in st.session_state.recent_stocks:
     # Keep only last 10
     st.session_state.recent_stocks = st.session_state.recent_stocks[:10]
 
+# Show favorites/watchlist
+try:
+    watchlist_data = auth.get_watchlist(st.session_state.username)
+    if watchlist_data:
+        st.sidebar.markdown("### Watchlist")
+        for item in watchlist_data[:5]:  # Show first 5
+            watch_ticker = item['ticker']
+            if st.sidebar.button(f"{watch_ticker}", key=f"watch_{watch_ticker}"):
+                company_names = [name for name, t in all_stocks.items() if t == watch_ticker]
+                selected_company = company_names[0] if company_names else watch_ticker
+                st.session_state.external_selected_company = selected_company
+                st.rerun()
+except Exception as e:
+    pass
+
 # Show recent stocks
 if st.session_state.recent_stocks:
-    # Show favorites/watchlist
-    try:
-        watchlist_data = auth.get_watchlist(st.session_state.username)
-        if watchlist_data:
-            st.sidebar.markdown("### Watchlist")
-            for item in watchlist_data[:5]:  # Show first 5
-                watch_ticker = item['ticker']
-                if st.sidebar.button(f"{watch_ticker}", key=f"watch_{watch_ticker}"):
-                    ticker = watch_ticker
-                    # Try to find company name
-                    company_names = [name for name, t in all_stocks.items() if t == watch_ticker]
-                    selected_company = company_names[0] if company_names else watch_ticker
-    except:
-        st.sidebar.markdown("### Recently Viewed")
+    st.sidebar.markdown("### Recently Viewed")
     for recent_ticker in st.session_state.recent_stocks[:5]:  # Show last 5
         if st.sidebar.button(f"{recent_ticker}", key=f"recent_{recent_ticker}"):
-            ticker = recent_ticker
-            # Try to find company name
             company_names = [name for name, t in all_stocks.items() if t == recent_ticker]
             selected_company = company_names[0] if company_names else recent_ticker
+            st.session_state.external_selected_company = selected_company
+            st.rerun()
 if ticker:
     # Validate ticker before proceeding
     with st.spinner("Validating stock ticker..."):
@@ -718,13 +746,10 @@ if ticker:
                         st.info("Not enough recent news to generate an AI summary.")
 
                 st.markdown("<br>", unsafe_allow_html=True)
-                # Price Chart
-                fig = go.Figure(data=[go.Candlestick(
-                    x=stock_data['Date'], open=stock_data['Open'], high=stock_data['High'],
-                    low=stock_data['Low'], close=stock_data['Close'], name="Price"
-                )])
-                fig.update_layout(template=plotly_template, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', margin=dict(l=0, r=0, t=10, b=0), xaxis_rangeslider_visible=False, height=400)
-                st.plotly_chart(fig, use_container_width=True)
+                # Interactive TradingView Chart (with drawing tools)
+                st.markdown("### Interactive Chart (with Drawing Tools & Indicators)")
+                tv_html = get_tradingview_widget_html(ticker, theme_choice)
+                st.components.v1.html(tv_html, height=900)
                 
                 # News
                 st.subheader("Recent Headlines")
@@ -1346,14 +1371,21 @@ if ticker:
                                 continue
                                 
                             # Extract single stock DataFrame from bulk data
-                            if len(ticker_list) == 1:
-                                df_scan = bulk_data.copy()
+                            df_scan = pd.DataFrame()
+                            if isinstance(bulk_data.columns, pd.MultiIndex):
+                                ticker_level = 1
+                                if 'Ticker' in bulk_data.columns.names:
+                                    ticker_level = bulk_data.columns.names.index('Ticker')
+                                try:
+                                    df_scan = bulk_data.xs(t, level=ticker_level, axis=1).copy()
+                                except:
+                                    pass
                             else:
-                                if t in bulk_data.columns.levels[0]:
-                                    df_scan = bulk_data[t].copy()
-                                else:
-                                    df_scan = pd.DataFrame()
+                                df_scan = bulk_data.copy()
                                     
+                            if not df_scan.empty:
+                                df_scan.dropna(subset=['Close'], inplace=True)
+                                
                             if not df_scan.empty and 'Close' in df_scan.columns:
                                 df_scan.reset_index(inplace=True)
                                 if 'Date' in df_scan.columns:
