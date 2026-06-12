@@ -292,14 +292,19 @@ if not st.session_state.logged_in:
 
 # -- Helper Functions for Tech Analysis --
 def get_tradingview_widget_html(ticker, theme="dark"):
+    # Ensure ticker is uppercase and stripped
+    ticker = str(ticker).strip().upper()
+    
     # Convert yfinance ticker (e.g. RELIANCE.NS) to TradingView symbol (e.g. NSE:RELIANCE)
-    symbol = ticker
     if ticker.endswith(".NS"):
         symbol = "NSE:" + ticker[:-3]
     elif ticker.endswith(".BO"):
         symbol = "BSE:" + ticker[:-3]
     else:
-        symbol = "NSE:" + ticker
+        if ":" in ticker:
+            symbol = ticker
+        else:
+            symbol = "NSE:" + ticker
         
     theme_str = "dark" if theme == "Dark Mode" else "light"
     
@@ -645,9 +650,20 @@ if st.session_state.recent_stocks:
             st.session_state.external_selected_company = selected_company
             st.rerun()
 if ticker:
-    # Validate ticker before proceeding
-    with st.spinner("Validating stock ticker..."):
-        is_valid, validation_msg, current_price = validate_stock_ticker(ticker)
+    # Skip yfinance validation request if it's already a known stock in our database to make loading faster
+    is_known = False
+    for name, t in all_stocks.items():
+        if t == ticker:
+            is_known = True
+            break
+            
+    if is_known:
+        is_valid = True
+        validation_msg = ""
+        current_price = 0.0
+    else:
+        with st.spinner("Validating stock ticker..."):
+            is_valid, validation_msg, current_price = validate_stock_ticker(ticker)
 
     if not is_valid:
         st.error(f"Error: {validation_msg}")
@@ -656,9 +672,17 @@ if ticker:
 
     try:
         with st.spinner(f"Crunching advanced market data for {ticker}..."):
-            stock_data = data_fetcher.get_stock_data(ticker, period)
-            news_data = data_fetcher.get_stock_news(ticker)
-            stock_info = data_fetcher.get_stock_info(ticker)
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+                # Fetch stock prices, news, and info in parallel (approx 3x faster loading)
+                future_data = executor.submit(data_fetcher.get_stock_data, ticker, period)
+                future_news = executor.submit(data_fetcher.get_stock_news, ticker)
+                future_info = executor.submit(data_fetcher.get_stock_info, ticker)
+                
+                stock_data = future_data.result()
+                news_data = future_news.result()
+                stock_info = future_info.result()
+                
             analyzed_news = sentiment_analyzer.get_news_with_sentiment(news_data) if not news_data.empty else pd.DataFrame()
 
         if stock_data.empty:
