@@ -1069,23 +1069,11 @@ if ticker:
                         st.info("Not enough recent news to generate an AI summary.")
 
                 st.markdown("<br>", unsafe_allow_html=True)
-                # Chart Engine Selector
-                chart_engine = st.radio(
-                    "Select Chart Engine",
-                    ["Local High-Performance Chart (Works for all 2,400+ stocks)", "TradingView Cloud Widget (May have licensing restrictions)"],
-                    horizontal=True,
-                    help="TradingView blocks embedding for some stocks (e.g., Apollo). Use the Local Chart if you see a licensing error on the Cloud Widget."
-                )
-                
-                if chart_engine == "Local High-Performance Chart (Works for all 2,400+ stocks)":
-                    symbol_display = f"NSE:{ticker[:-3]}" if (ticker.endswith(".NS") or ticker.endswith(".BO")) else ticker
-                    lw_html = get_lightweight_chart_html(stock_data, symbol_display, selected_company, theme_choice)
-                    with st.container(key=f"lw_chart_container_{ticker}_{theme_choice.replace(' ', '_').lower()}"):
-                        st.components.v1.html(lw_html, height=850)
-                else:
-                    tv_html = get_tradingview_widget_html(ticker, theme_choice)
-                    with st.container(key=f"tv_chart_container_{ticker}_{theme_choice.replace(' ', '_').lower()}"):
-                        st.components.v1.html(tv_html, height=900)
+                st.markdown("### Interactive Market Chart")
+                symbol_display = f"NSE:{ticker[:-3]}" if (ticker.endswith(".NS") or ticker.endswith(".BO")) else ticker
+                lw_html = get_lightweight_chart_html(stock_data, symbol_display, selected_company, theme_choice)
+                with st.container(key=f"lw_chart_container_{ticker}_{theme_choice.replace(' ', '_').lower()}"):
+                    st.components.v1.html(lw_html, height=850)
                 
                 # News
                 st.subheader("Recent Headlines")
