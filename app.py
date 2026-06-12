@@ -299,12 +299,37 @@ def get_tradingview_widget_html(ticker, theme="dark"):
     # Note: TradingView blocks embedding of BSE data feeds on third-party websites.
     # To bypass this restriction, we map all Indian tickers (.NS and .BO) to their NSE equivalent.
     if ticker.endswith(".NS") or ticker.endswith(".BO"):
-        symbol = "NSE:" + ticker[:-3]
+        symbol_name = ticker[:-3]
     else:
         if ":" in ticker:
-            symbol = ticker
+            symbol_name = ticker.split(":", 1)[1]
         else:
-            symbol = "NSE:" + ticker
+            symbol_name = ticker
+            
+    # Manual mappings for known discrepancies between yfinance/BSE tickers and TradingView NSE symbols
+    ticker_overrides = {
+        "MCDOWELL-N": "UNITDSPR",
+        "MCDOWELL_N": "UNITDSPR",
+        "MCDOWELL": "UNITDSPR",
+    }
+    
+    if symbol_name in ticker_overrides:
+        symbol_name = ticker_overrides[symbol_name]
+    else:
+        # Clean symbol name to match TradingView's naming convention for special characters:
+        # 1. Ampersand (&) is valid and kept in NSE TradingView symbols (e.g. M&M, ARE&M)
+        # 2. Hyphens (-) are replaced with underscores (e.g. BAJAJ-AUTO -> BAJAJ_AUTO)
+        #    EXCEPT when they represent a share series like -B or -RE at the end (e.g. KLBRENG-B)
+        if "-" in symbol_name:
+            if len(symbol_name) >= 2 and symbol_name[-2] == "-":
+                pass
+            else:
+                symbol_name = symbol_name.replace("-", "_")
+        
+        # 3. Spaces are replaced with underscores
+        symbol_name = symbol_name.replace(" ", "_")
+        
+    symbol = f"NSE:{symbol_name}"
         
     theme_str = "dark" if theme == "Dark Mode" else "light"
     
