@@ -362,7 +362,8 @@ def get_tradingview_widget_html(ticker, theme="dark"):
         "enable_publishing": false,
         "hide_side_toolbar": false,
         "allow_symbol_change": true,
-        "container_id": "tradingview_chart"
+        "container_id": "tradingview_chart",
+        "support_host": "https://www.tradingview.com"
       }});
       </script>
     </div>
