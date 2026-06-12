@@ -295,11 +295,11 @@ def get_tradingview_widget_html(ticker, theme="dark"):
     # Ensure ticker is uppercase and stripped
     ticker = str(ticker).strip().upper()
     
-    # Convert yfinance ticker (e.g. RELIANCE.NS) to TradingView symbol (e.g. NSE:RELIANCE)
-    if ticker.endswith(".NS"):
+    # Convert yfinance ticker (e.g. RELIANCE.NS or RELIANCE.BO) to TradingView symbol (e.g. NSE:RELIANCE)
+    # Note: TradingView blocks embedding of BSE data feeds on third-party websites.
+    # To bypass this restriction, we map all Indian tickers (.NS and .BO) to their NSE equivalent.
+    if ticker.endswith(".NS") or ticker.endswith(".BO"):
         symbol = "NSE:" + ticker[:-3]
-    elif ticker.endswith(".BO"):
-        symbol = "BSE:" + ticker[:-3]
     else:
         if ":" in ticker:
             symbol = ticker
