@@ -371,7 +371,7 @@ def get_tradingview_widget_html(ticker, theme="dark"):
     return html_code
 
 
-def get_lightweight_chart_html(stock_data, theme="dark"):
+def get_lightweight_chart_html(stock_data, ticker, company_name, theme="dark"):
     import json
     # Convert dataframe to JSON list of candles
     candles = []
@@ -400,6 +400,8 @@ def get_lightweight_chart_html(stock_data, theme="dark"):
     bg_color = "#121622" if theme == "Dark Mode" else "#FFFFFF"
     text_color = "#ECEFF4" if theme == "Dark Mode" else "#1E293B"
     grid_color = "rgba(30, 37, 56, 0.4)" if theme == "Dark Mode" else "rgba(226, 232, 240, 0.4)"
+    metric_label = "#94A3B8" if theme == "Dark Mode" else "#64748B"
+    legend_bg = "rgba(18, 22, 34, 0.7)" if theme == "Dark Mode" else "rgba(255, 255, 255, 0.7)"
     
     html_code = f"""
     <!DOCTYPE html>
@@ -419,11 +421,59 @@ def get_lightweight_chart_html(stock_data, theme="dark"):
             #chart-container {{
                 width: 100%;
                 height: 100%;
+                position: relative;
+            }}
+            #legend {{
+                position: absolute;
+                z-index: 1000;
+                top: 15px;
+                left: 15px;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                pointer-events: none;
+                background-color: {legend_bg};
+                padding: 6px 10px;
+                border-radius: 6px;
+            }}
+            .symbol-title {{
+                font-size: 14px;
+                font-weight: 700;
+                color: {text_color};
+                margin-bottom: 4px;
+            }}
+            .ohlc-container {{
+                font-size: 12px;
+                color: {metric_label};
+                display: flex;
+                gap: 12px;
+            }}
+            .ohlc-container span {{
+                display: flex;
+                gap: 3px;
+            }}
+            .val {{
+                font-weight: 600;
+            }}
+            .up {{
+                color: #26a69a !important;
+            }}
+            .down {{
+                color: #ef5350 !important;
             }}
         </style>
     </head>
     <body>
-        <div id="chart-container"></div>
+        <div id="chart-container">
+            <div id="legend">
+                <div class="symbol-title">{ticker} - {company_name} • D</div>
+                <div class="ohlc-container">
+                    <span>O <span class="val" id="val-open">-</span></span>
+                    <span>H <span class="val" id="val-high">-</span></span>
+                    <span>L <span class="val" id="val-low">-</span></span>
+                    <span>C <span class="val" id="val-close">-</span></span>
+                    <span id="val-change" class="val">-</span>
+                </div>
+            </div>
+        </div>
         <script>
             const chartOptions = {{
                 layout: {{
@@ -481,6 +531,66 @@ def get_lightweight_chart_html(stock_data, theme="dark"):
                 color: d.close >= d.open ? 'rgba(38, 166, 154, 0.4)' : 'rgba(239, 83, 80, 0.4)'
             }}));
             volumeSeries.setData(volumeData);
+            
+            const valOpen = document.getElementById('val-open');
+            const valHigh = document.getElementById('val-high');
+            const valLow = document.getElementById('val-low');
+            const valClose = document.getElementById('val-close');
+            const valChange = document.getElementById('val-change');
+            
+            function updateLegend(priceData) {{
+                if (priceData) {{
+                    const open = priceData.open;
+                    const high = priceData.high;
+                    const low = priceData.low;
+                    const close = priceData.close;
+                    
+                    valOpen.innerText = open.toFixed(2);
+                    valHigh.innerText = high.toFixed(2);
+                    valLow.innerText = low.toFixed(2);
+                    valClose.innerText = close.toFixed(2);
+                    
+                    const change = close - open;
+                    const pctChange = (change / open) * 100;
+                    const sign = change >= 0 ? '+' : '';
+                    valChange.innerText = `${{sign}}${{change.toFixed(2)}} (${{sign}}${{pctChange.toFixed(2)}}%)`;
+                    
+                    const colorClass = change >= 0 ? 'up' : 'down';
+                    valOpen.className = 'val ' + colorClass;
+                    valHigh.className = 'val ' + colorClass;
+                    valLow.className = 'val ' + colorClass;
+                    valClose.className = 'val ' + colorClass;
+                    valChange.className = 'val ' + colorClass;
+                }} else {{
+                    valOpen.innerText = '-';
+                    valHigh.innerText = '-';
+                    valLow.innerText = '-';
+                    valClose.innerText = '-';
+                    valChange.innerText = '-';
+                    valOpen.className = 'val';
+                    valHigh.className = 'val';
+                    valLow.className = 'val';
+                    valClose.className = 'val';
+                    valChange.className = 'val';
+                }}
+            }}
+            
+            // Set initial value to the last candle
+            if (data.length > 0) {{
+                updateLegend(data[data.length - 1]);
+            }}
+            
+            chart.subscribeCrosshairMove(param => {{
+                if (param.time) {{
+                    const priceData = param.seriesData.get(candlestickSeries);
+                    updateLegend(priceData);
+                }} else {{
+                    // Reset to last candle when not hovering
+                    if (data.length > 0) {{
+                        updateLegend(data[data.length - 1]);
+                    }}
+                }}
+            }});
             
             chart.timeScale().fitContent();
             
@@ -962,19 +1072,20 @@ if ticker:
                 # Chart Engine Selector
                 chart_engine = st.radio(
                     "Select Chart Engine",
-                    ["TradingView Cloud Widget", "Local High-Performance Chart (Bypasses licensing blocks/works 100%)"],
+                    ["Local High-Performance Chart (Works for all 2,400+ stocks)", "TradingView Cloud Widget (May have licensing restrictions)"],
                     horizontal=True,
-                    help="Some stock charts (like Apollo) may be blocked from embedding by TradingView. Switch to the Local Chart to view it here without errors."
+                    help="TradingView blocks embedding for some stocks (e.g., Apollo). Use the Local Chart if you see a licensing error on the Cloud Widget."
                 )
                 
-                if chart_engine == "TradingView Cloud Widget":
+                if chart_engine == "Local High-Performance Chart (Works for all 2,400+ stocks)":
+                    symbol_display = f"NSE:{ticker[:-3]}" if (ticker.endswith(".NS") or ticker.endswith(".BO")) else ticker
+                    lw_html = get_lightweight_chart_html(stock_data, symbol_display, selected_company, theme_choice)
+                    with st.container(key=f"lw_chart_container_{ticker}_{theme_choice.replace(' ', '_').lower()}"):
+                        st.components.v1.html(lw_html, height=850)
+                else:
                     tv_html = get_tradingview_widget_html(ticker, theme_choice)
                     with st.container(key=f"tv_chart_container_{ticker}_{theme_choice.replace(' ', '_').lower()}"):
                         st.components.v1.html(tv_html, height=900)
-                else:
-                    lw_html = get_lightweight_chart_html(stock_data, theme_choice)
-                    with st.container(key=f"lw_chart_container_{ticker}_{theme_choice.replace(' ', '_').lower()}"):
-                        st.components.v1.html(lw_html, height=850)
                 
                 # News
                 st.subheader("Recent Headlines")
