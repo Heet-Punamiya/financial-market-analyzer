@@ -788,7 +788,7 @@ if ticker:
                 # Interactive TradingView Chart (with drawing tools)
                 st.markdown("### Interactive Chart (with Drawing Tools & Indicators)")
                 tv_html = get_tradingview_widget_html(ticker, theme_choice)
-                st.components.v1.html(tv_html, height=900)
+                st.components.v1.html(tv_html, height=900, key=f"tv_chart_{ticker}_{theme_choice.replace(' ', '_').lower()}")
                 
                 # News
                 st.subheader("Recent Headlines")
