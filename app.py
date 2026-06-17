@@ -803,11 +803,11 @@ if ticker:
                 "Technical Analysis", 
                 "AI Forecast", 
                 "Compare Stocks", 
-                "Portfolio Tracker",
                 "Strategy Backtester",
                 "IPO Zone",
                 "Watchlist",
-                "Market Signals"
+                "Market Signals",
+                "Portfolio Tracker"
             ])
             
             current_price = stock_data['Close'].iloc[-1]
