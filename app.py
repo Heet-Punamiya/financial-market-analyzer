@@ -1308,9 +1308,9 @@ if ticker:
                     st.plotly_chart(fig_comp, use_container_width=True)
 
             # ==========================================
-            # TAB 5: PORTFOLIO
+            # TAB 9: PORTFOLIO
             # ==========================================
-            with tab5:
+            with tab9:
                 st.subheader("My Personal Portfolio")
                 
                 pf_col1, pf_col2 = st.columns(2)
@@ -1523,7 +1523,6 @@ if ticker:
                             "Total Charges": f"₹{tx['total_charges']:,.2f}"
                         })
                     st.dataframe(pd.DataFrame(tx_display), use_container_width=True)
-                    
                     st.markdown("#### 🔍 Tax Invoice & Charges Bifurcation")
                     tx_options = [f"#{idx + 1}: {tx['trade_type']} {tx['shares']:.2f} {tx['ticker']} @ ₹{tx['price']} on {tx['timestamp']}" for idx, tx in enumerate(transactions)]
                     selected_tx_str = st.selectbox("Select a transaction to inspect charges invoice", tx_options)
@@ -1535,59 +1534,228 @@ if ticker:
                     st.info("No transactions logged yet.")
 
             # ==========================================
-            # TAB 6: BACKTESTER
+            # TAB 5: BACKTESTER
             # ==========================================
-            with tab6:
+            with tab5:
                 st.subheader("Strategy Backtester")
-                st.write("Test a simple Moving Average (MA) Crossover strategy on historical data to see if it would have been profitable.")
                 
-                bc1, bc2 = st.columns(2)
-                short_ma = bc1.number_input("Short Moving Average (Days)", min_value=3, max_value=50, value=10)
-                long_ma = bc2.number_input("Long Moving Average (Days)", min_value=10, max_value=200, value=30)
+                strategy_choice = st.selectbox(
+                    "Select Backtesting Strategy",
+                    ["Moving Average Crossover", "Rounding Bottom & Resistance Breakout"],
+                    key="backtest_strategy"
+                )
                 
-                if short_ma >= long_ma:
-                    st.warning("Short MA should be less than Long MA for a sensible crossover strategy.")
-                else:
-                    # Run a simple backtest
-                    bt_data = stock_data.copy()
-                    bt_data['Short_MA'] = bt_data['Close'].rolling(window=short_ma).mean()
-                    bt_data['Long_MA'] = bt_data['Close'].rolling(window=long_ma).mean()
+                if strategy_choice == "Moving Average Crossover":
+                    st.write("Test a simple Moving Average (MA) Crossover strategy on historical data to see if it would have been profitable.")
                     
-                    # 1 = Buy, 0 = Sell
-                    bt_data['Signal'] = 0.0  
-                    bt_data.loc[bt_data['Short_MA'] > bt_data['Long_MA'], 'Signal'] = 1.0
-                    bt_data['Position'] = bt_data['Signal'].diff()
+                    bc1, bc2 = st.columns(2)
+                    short_ma = bc1.number_input("Short Moving Average (Days)", min_value=3, max_value=50, value=10)
+                    long_ma = bc2.number_input("Long Moving Average (Days)", min_value=10, max_value=200, value=30)
                     
-                    bt_data = bt_data.dropna()
+                    if short_ma >= long_ma:
+                        st.warning("Short MA should be less than Long MA for a sensible crossover strategy.")
+                    else:
+                        # Run a simple backtest
+                        bt_data = stock_data.copy()
+                        bt_data['Short_MA'] = bt_data['Close'].rolling(window=short_ma).mean()
+                        bt_data['Long_MA'] = bt_data['Close'].rolling(window=long_ma).mean()
+                        
+                        # 1 = Buy, 0 = Sell
+                        bt_data['Signal'] = 0.0  
+                        bt_data.loc[bt_data['Short_MA'] > bt_data['Long_MA'], 'Signal'] = 1.0
+                        bt_data['Position'] = bt_data['Signal'].diff()
+                        
+                        bt_data = bt_data.dropna()
+                        
+                        # Calculate Returns
+                        bt_data['Market_Returns'] = bt_data['Close'].pct_change()
+                        bt_data['Strategy_Returns'] = bt_data['Market_Returns'] * bt_data['Signal'].shift(1)
+                        
+                        cumulative_market = (1 + bt_data['Market_Returns']).cumprod()
+                        cumulative_strategy = (1 + bt_data['Strategy_Returns']).cumprod()
+                        
+                        fig_bt = go.Figure()
+                        fig_bt.add_trace(go.Scatter(x=bt_data['Date'], y=cumulative_market, name="Buy & Hold Return", line=dict(color='#94a3b8')))
+                        fig_bt.add_trace(go.Scatter(x=bt_data['Date'], y=cumulative_strategy, name="Strategy Return", line=dict(color='#00B386', width=3)))
+                        
+                        fig_bt.update_layout(template=plotly_template, height=400, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', title="Cumulative Returns")
+                        st.plotly_chart(fig_bt, use_container_width=True)
+                        
+                        # Metrics
+                        tc1, tc2 = st.columns(2)
+                        strat_tot = (cumulative_strategy.iloc[-1] - 1) * 100 if len(cumulative_strategy) > 0 else 0
+                        mark_tot = (cumulative_market.iloc[-1] - 1) * 100 if len(cumulative_market) > 0 else 0
+                        
+                        tc1.metric("Strategy Total Return", f"{strat_tot:.2f}%")
+                        tc2.metric("Buy & Hold Total Return", f"{mark_tot:.2f}%")
+                        
+                        st.info("Note: This is a basic simulation excluding trading fees, slippage, and taxes.")
+                
+                elif strategy_choice == "Rounding Bottom & Resistance Breakout":
+                    st.write("Backtest a complex momentum breakout strategy based on EMA stack alignment, volume spikes, rounding bottom lows, and resistance breakouts.")
                     
-                    # Calculate Returns
-                    bt_data['Market_Returns'] = bt_data['Close'].pct_change()
-                    bt_data['Strategy_Returns'] = bt_data['Market_Returns'] * bt_data['Signal'].shift(1)
+                    # Strategy parameter controls
+                    p_col1, p_col2, p_col3, p_col4 = st.columns(4)
+                    lookback_days = p_col1.number_input("Lookback Window (Days)", min_value=20, max_value=120, value=60, step=5)
+                    vol_factor = p_col2.number_input("Volume Breakout Factor", min_value=1.0, max_value=3.0, value=1.5, step=0.1)
+                    sl_pct = p_col3.number_input("Stop Loss %", min_value=1.0, max_value=25.0, value=8.0, step=0.5)
+                    target_pct = p_col4.number_input("Profit Target %", min_value=2.0, max_value=100.0, value=20.0, step=1.0)
                     
-                    cumulative_market = (1 + bt_data['Market_Returns']).cumprod()
-                    cumulative_strategy = (1 + bt_data['Strategy_Returns']).cumprod()
-                    
-                    fig_bt = go.Figure()
-                    fig_bt.add_trace(go.Scatter(x=bt_data['Date'], y=cumulative_market, name="Buy & Hold Return", line=dict(color='#94a3b8')))
-                    fig_bt.add_trace(go.Scatter(x=bt_data['Date'], y=cumulative_strategy, name="Strategy Return", line=dict(color='#00B386', width=3)))
-                    
-                    fig_bt.update_layout(template=plotly_template, height=400, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', title="Cumulative Returns")
-                    st.plotly_chart(fig_bt, use_container_width=True)
-                    
-                    # Metrics
-                    tc1, tc2 = st.columns(2)
-                    strat_tot = (cumulative_strategy.iloc[-1] - 1) * 100 if len(cumulative_strategy) > 0 else 0
-                    mark_tot = (cumulative_market.iloc[-1] - 1) * 100 if len(cumulative_market) > 0 else 0
-                    
-                    tc1.metric("Strategy Total Return", f"{strat_tot:.2f}%")
-                    tc2.metric("Buy & Hold Total Return", f"{mark_tot:.2f}%")
-                    
-                    st.info("Note: This is a basic simulation excluding trading fees, slippage, and taxes.")
+                    if len(stock_data) < lookback_days + 20:
+                        st.warning(f"Not enough historical price data for the selected lookback window of {lookback_days} days. Minimum required: {lookback_days + 20} bars.")
+                    else:
+                        with st.spinner("Simulating strategy..."):
+                            bt_data = stock_data.copy()
+                            
+                            # 1. EMA Calculations
+                            emas = [9, 10, 20, 50, 100, 200]
+                            for e in emas:
+                                bt_data[f"EMA{e}"] = bt_data["Close"].ewm(span=e, adjust=False).mean()
+                            
+                            bt_data["EMA_STACK"] = (
+                                (bt_data["EMA9"] > bt_data["EMA10"]) &
+                                (bt_data["EMA10"] > bt_data["EMA20"]) &
+                                (bt_data["EMA20"] > bt_data["EMA50"]) &
+                                (bt_data["EMA50"] > bt_data["EMA100"]) &
+                                (bt_data["EMA100"] > bt_data["EMA200"])
+                            )
+                            
+                            # 2. Volume Confirmation
+                            bt_data["VOL20"] = bt_data["Volume"].rolling(20).mean()
+                            bt_data["VOL_BREAKOUT"] = bt_data["Volume"] > (vol_factor * bt_data["VOL20"])
+                            
+                            # 3. Rounding Bottom Detection
+                            bt_data["LOWEST"] = bt_data["Low"].rolling(lookback_days).min()
+                            
+                            # Calculate lowest position inside the window
+                            lowest_pos = []
+                            for i in range(len(bt_data)):
+                                if i < lookback_days:
+                                    lowest_pos.append(np.nan)
+                                    continue
+                                window_lows = bt_data["Low"].iloc[i-lookback_days:i].values
+                                pos = np.argmin(window_lows)
+                                lowest_pos.append(pos)
+                            
+                            bt_data["LOW_POS"] = lowest_pos
+                            
+                            # Low should occur near middle of pattern (25% to 75% of window)
+                            bt_data["ROUNDING"] = (
+                                (bt_data["LOW_POS"] > (lookback_days * 0.25)) &
+                                (bt_data["LOW_POS"] < (lookback_days * 0.75))
+                            )
+                            
+                            # 4. Resistance Breakout
+                            bt_data["RESISTANCE"] = bt_data["High"].rolling(lookback_days).max().shift(1)
+                            bt_data["BREAKOUT"] = bt_data["Close"] > (bt_data["RESISTANCE"] * 1.01)
+                            
+                            # 5. Entry Signal
+                            bt_data["BUY"] = (
+                                bt_data["EMA_STACK"] &
+                                bt_data["ROUNDING"] &
+                                bt_data["VOL_BREAKOUT"] &
+                                bt_data["BREAKOUT"]
+                            )
+                            
+                            # Simulation Loop
+                            position = 0
+                            entry_price = 0
+                            entry_date = None
+                            trades = []
+                            
+                            buy_dates = []
+                            buy_prices = []
+                            exit_dates = []
+                            exit_prices = []
+                            
+                            for i in range(len(bt_data)):
+                                row = bt_data.iloc[i]
+                                
+                                if position == 0 and row["BUY"]:
+                                    position = 1
+                                    entry_price = row["Close"]
+                                    stop_loss = entry_price * (1 - sl_pct / 100)
+                                    target = entry_price * (1 + target_pct / 100)
+                                    entry_date = row["Date"]
+                                    
+                                    buy_dates.append(row["Date"])
+                                    buy_prices.append(entry_price)
+                                    
+                                elif position == 1:
+                                    low_val = row["Low"]
+                                    high_val = row["High"]
+                                    
+                                    exit_reason = None
+                                    exit_price = None
+                                    
+                                    if low_val <= stop_loss:
+                                        exit_price = stop_loss
+                                        exit_reason = "SL"
+                                    elif high_val >= target:
+                                        exit_price = target
+                                        exit_reason = "TARGET"
+                                        
+                                    if exit_reason:
+                                        pnl = ((exit_price - entry_price) / entry_price) * 100
+                                        trades.append({
+                                            "Entry Date": entry_date.strftime("%Y-%m-%d") if hasattr(entry_date, 'strftime') else str(entry_date),
+                                            "Exit Date": row["Date"].strftime("%Y-%m-%d") if hasattr(row["Date"], 'strftime') else str(row["Date"]),
+                                            "Entry Price": f"₹{entry_price:,.2f}",
+                                            "Exit Price": f"₹{exit_price:,.2f}",
+                                            "PnL %": round(pnl, 2),
+                                            "Reason": exit_reason
+                                        })
+                                        position = 0
+                                        exit_dates.append(row["Date"])
+                                        exit_prices.append(exit_price)
+                            
+                            # Draw Plotly Chart with Entries and Exits
+                            fig_signals = go.Figure()
+                            fig_signals.add_trace(go.Scatter(x=bt_data['Date'], y=bt_data['Close'], name="Stock Price", line=dict(color='#3B82F6', width=2)))
+                            
+                            if buy_dates:
+                                fig_signals.add_trace(go.Scatter(
+                                    x=buy_dates, y=buy_prices, mode='markers', name='Buy Entry', 
+                                    marker=dict(symbol='triangle-up', size=12, color='#10B981', line=dict(width=1, color='white'))
+                                ))
+                            if exit_dates:
+                                fig_signals.add_trace(go.Scatter(
+                                    x=exit_dates, y=exit_prices, mode='markers', name='Exit Sell',
+                                    marker=dict(symbol='triangle-down', size=12, color='#EF4444', line=dict(width=1, color='white'))
+                                ))
+                                
+                            fig_signals.update_layout(
+                                template=plotly_template, height=450, 
+                                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                                title=f"{ticker} Trade Signals & Price Chart"
+                            )
+                            st.plotly_chart(fig_signals, use_container_width=True)
+                            
+                            # Display Statistics
+                            st.markdown("#### Performance Metrics")
+                            trades_df = pd.DataFrame(trades)
+                            
+                            if not trades_df.empty:
+                                total_trades = len(trades_df)
+                                wins = len(trades_df[trades_df["PnL %"] > 0])
+                                win_rate = (wins / total_trades) * 100
+                                avg_return = trades_df["PnL %"].mean()
+                                
+                                s_col1, s_col2, s_col3, s_col4 = st.columns(4)
+                                s_col1.metric("Total Trades", total_trades)
+                                s_col2.metric("Winning Trades", wins)
+                                s_col3.metric("Win Rate %", f"{win_rate:.2f}%")
+                                s_col4.metric("Avg Return / Trade", f"{avg_return:+.2f}%")
+                                
+                                st.markdown("#### Detailed Trade Log")
+                                st.dataframe(trades_df, use_container_width=True)
+                            else:
+                                st.info("No trades executed during this timeframe with the current parameter set.")
 
             # ==========================================
-            # TAB 7: IPO ZONE
+            # TAB 6: IPO ZONE
             # ==========================================
-            with tab7:
+            with tab6:
                 st.subheader("NSE & BSE IPO Zone")
                 st.markdown("Track active, ongoing, upcoming, and recently listed Initial Public Offerings (IPOs) in real-time.")
                 
@@ -1677,9 +1845,9 @@ if ticker:
                             """, unsafe_allow_html=True)
 
             # ==========================================
-            # TAB 8: WATCHLIST
+            # TAB 7: WATCHLIST
             # ==========================================
-            with tab8:
+            with tab7:
                 st.subheader("My Watchlist")
                 watchlist = auth.get_watchlist(st.session_state.username)
                 
@@ -1709,9 +1877,9 @@ if ticker:
                             st.markdown("---")
                             
             # ==========================================
-            # TAB 9: MARKET SIGNALS (Rise/Fall Predictor)
+            # TAB 8: MARKET SIGNALS (Rise/Fall Predictor)
             # ==========================================
-            with tab9:
+            with tab8:
                 st.subheader("Dynamic Market Signal Scanner")
                 st.markdown("AI-powered scanner that analyzes **RSI, MACD, and Moving Averages** to predict whether each stock is likely to Rise or Fall.")
                 st.markdown("---")
