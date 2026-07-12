@@ -2403,7 +2403,7 @@ ALL_STOCKS = {
     "Winsome Yarns Limited": "WINSOME.NS",
     "Wipro Limited": "WIPRO.NS",
     "Wipro Ltd": "WIPRO.BO",
-    "Wockhardt Limited": "WOCKPHARMA.NS",
+    "Wockhardt Limited": "WOCKPHARMA.NS",                                           
     "Wonder Electricals Limited": "WEL.NS",
     "Wonderla Holidays Limited": "WONDERLA.NS",
     "Worth Peripherals Limited": "WORTHPERI.NS",

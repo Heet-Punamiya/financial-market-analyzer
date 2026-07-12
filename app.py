@@ -808,7 +808,7 @@ if ticker:
                 "Watchlist",
                 "Market Signals",
                 "Portfolio Tracker"
-            ])
+            ], key="analyzer_tabs", on_change=lambda: None)
             
             current_price = stock_data['Close'].iloc[-1]
             
@@ -1080,232 +1080,234 @@ if ticker:
             # TAB 3: FORECASTING
             # ==========================================
             with tab3:
-                st.subheader("Price Forecast (Machine Learning)")
-                st.markdown("Professional predictive modeling utilizing historical values to forecast future price targets with statistical confidence intervals.")
-                
-                forecast_type = st.radio("Select Forecast Horizon", ["Daily Forecast (Next 3 Days)", "Hourly Forecast (Next 5 Hours)"], horizontal=True)
-                
-                if "Daily" in forecast_type:
-                    with st.spinner("Training ML model on daily data..."):
-                        forecast_data = data_fetcher.get_stock_data(ticker, "2y")
-                        if forecast_data.empty:
-                            st.warning("Could not fetch historical daily data for this stock.")
-                            prices = np.array([])
-                        else:
-                            ts_data = forecast_data[['Date', 'Close']].set_index('Date')
-                            ts_data.index = pd.to_datetime(ts_data.index)
-                            ts_data = ts_data.groupby(level=0).mean()
-                            ts_data = ts_data.resample('B').ffill().dropna()
-                            prices = ts_data['Close'].values
-                            dates = ts_data.index
-                            steps = 3
-                else:
-                    with st.spinner("Training ML model on intraday data..."):
-                        forecast_data = data_fetcher.get_stock_data(ticker, period="7d", interval="1h")
-                        if forecast_data.empty:
-                            st.warning("Could not fetch historical intraday hourly data for this stock.")
-                            prices = np.array([])
-                        else:
-                            ts_data = forecast_data[['Date', 'Close']].set_index('Date')
-                            ts_data.index = pd.to_datetime(ts_data.index)
-                            ts_data = ts_data.groupby(level=0).mean()
-                            ts_data = ts_data.resample('1H').ffill().dropna()
-                            prices = ts_data['Close'].values
-                            dates = ts_data.index
-                            steps = 5
-
-                if len(prices) >= 10:
-                    model_fitted = False
-                    model_name = "Holt-Winters Exponential Smoothing"
-                    fitted_values = np.array([])
+                if tab3.open:
+                    st.subheader("Price Forecast (Machine Learning)")
+                    st.markdown("Professional predictive modeling utilizing historical values to forecast future price targets with statistical confidence intervals.")
                     
-                    # Try Holt-Winters Exponential Smoothing
-                    try:
-                        freq = 'B' if "Daily" in forecast_type else '1H'
-                        series = pd.Series(prices, index=dates)
-                        model = ExponentialSmoothing(series, trend='add', seasonal=None, initialization_method="estimated")
-                        fit_model = model.fit()
-                        forecast = fit_model.forecast(steps)
-                        fitted_values = fit_model.fittedvalues.values
-                        model_fitted = True
-                    except Exception as e:
-                        # Fallback to Linear Trend Regression using numpy polyfit
-                        x = np.arange(len(prices))
-                        slope, intercept = np.polyfit(x, prices, 1)
-                        fitted_values = slope * x + intercept
-                        
-                        future_x = np.arange(len(prices), len(prices) + steps)
-                        forecast_vals = slope * future_x + intercept
-                        forecast = pd.Series(forecast_vals)
-                        model_name = "Linear Trend Regression"
-                        model_fitted = False
-
-                    # Residual analysis for standard error estimation
-                    residuals = prices - fitted_values
-                    sigma = np.std(residuals) if len(residuals) > 0 else (prices[-1] * 0.02)
-                    if sigma == 0:
-                        sigma = prices[-1] * 0.02
+                    forecast_type = st.radio("Select Forecast Horizon", ["Daily Forecast (Next 3 Days)", "Hourly Forecast (Next 5 Hours)"], horizontal=True)
                     
-                    # Target forecast dates
                     if "Daily" in forecast_type:
-                        forecast_dates = pd.bdate_range(start=dates[-1] + timedelta(days=1), periods=steps)
+                        with st.spinner("Training ML model on daily data..."):
+                            forecast_data = data_fetcher.get_stock_data(ticker, "2y")
+                            if forecast_data.empty:
+                                st.warning("Could not fetch historical daily data for this stock.")
+                                prices = np.array([])
+                            else:
+                                ts_data = forecast_data[['Date', 'Close']].set_index('Date')
+                                ts_data.index = pd.to_datetime(ts_data.index)
+                                ts_data = ts_data.groupby(level=0).mean()
+                                ts_data = ts_data.resample('B').ffill().dropna()
+                                prices = ts_data['Close'].values
+                                dates = ts_data.index
+                                steps = 3
                     else:
-                        forecast_dates = [dates[-1] + timedelta(hours=i) for i in range(1, steps + 1)]
-                    
-                    forecast.index = forecast_dates
-                    
-                    # 95% Confidence bounds propagation: SE(h) = sigma * sqrt(h)
-                    lower_bounds = []
-                    upper_bounds = []
-                    for h in range(1, steps + 1):
-                        margin = 1.96 * sigma * np.sqrt(h)
-                        lower_bounds.append(max(0.1, forecast.iloc[h-1] - margin))
-                        upper_bounds.append(forecast.iloc[h-1] + margin)
-                    
-                    # Calculate Mean Absolute Percentage Error (MAPE) for model evaluation
-                    mape = np.mean(np.abs(residuals / prices)) * 100
-                    if mape < 1.5:
-                        confidence = "High"
-                        confidence_color = "#10B981"
-                    elif mape < 4.0:
-                        confidence = "Medium"
-                        confidence_color = "#F59E0B"
-                    else:
-                        confidence = "Low"
-                        confidence_color = "#EF4444"
-                        
-                    # Calculate Directional Bias
-                    start_p = prices[-1]
-                    end_p = forecast.iloc[-1]
-                    pct_change = ((end_p - start_p) / start_p) * 100
-                    
-                    if pct_change > 0.5:
-                        trend_dir = "Bullish"
-                        trend_color = "#00B386"
-                    elif pct_change < -0.5:
-                        trend_dir = "Bearish"
-                        trend_color = "#EB5B3C"
-                    else:
-                        trend_dir = "Neutral"
-                        trend_color = "#F59E0B"
+                        with st.spinner("Training ML model on intraday data..."):
+                            forecast_data = data_fetcher.get_stock_data(ticker, period="7d", interval="1h")
+                            if forecast_data.empty:
+                                st.warning("Could not fetch historical intraday hourly data for this stock.")
+                                prices = np.array([])
+                            else:
+                                ts_data = forecast_data[['Date', 'Close']].set_index('Date')
+                                ts_data.index = pd.to_datetime(ts_data.index)
+                                ts_data = ts_data.groupby(level=0).mean()
+                                ts_data = ts_data.resample('1H').ffill().dropna()
+                                prices = ts_data['Close'].values
+                                dates = ts_data.index
+                                steps = 5
 
-                    # Metrics display columns
-                    mc1, mc2, mc3 = st.columns(3)
-                    mc1.metric("Model Confidence", f"{confidence}", f"MAPE: {mape:.2f}%", delta_color="normal" if confidence != "Low" else "inverse")
-                    mc2.metric("Directional Bias", f"{trend_dir}", f"{pct_change:+.2f}%", delta_color="normal" if trend_dir == "Bullish" else ("inverse" if trend_dir == "Bearish" else "off"))
-                    mc3.metric("Projected Target Range", f"₹{end_p:.2f}", f"₹{lower_bounds[-1]:.2f} - ₹{upper_bounds[-1]:.2f}", delta_color="off")
-                    
-                    # AI Explanation Summary Box
-                    st.markdown(f"""
-                    <div class="ai-summary" style="border-left: 4px solid {trend_color} !important;">
-                        <strong>Forecast Model Insights:</strong> FinTrend fitted a <strong>{model_name}</strong> to the stock's historical close prices. 
-                        The model anticipates a <strong>{trend_dir.upper()}</strong> trend over the projection horizon, targeting a final price of <strong>₹{end_p:.2f}</strong> 
-                        (95% confidence range: <strong>₹{lower_bounds[-1]:.2f}</strong> to <strong>₹{upper_bounds[-1]:.2f}</strong>). 
-                        Historical fit accuracy exhibits a Mean Absolute Percentage Error (MAPE) of <strong>{mape:.2f}%</strong>.
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Plotly chart
-                    fig_fc = go.Figure()
-                    
-                    # Slice historical data for display: last 30 for daily, last 24 for hourly
-                    slice_len = min(len(prices), 30 if "Daily" in forecast_type else 24)
-                    hist_dates = dates[-slice_len:]
-                    hist_prices = prices[-slice_len:]
-                    
-                    # Historical Price path
-                    fig_fc.add_trace(go.Scatter(
-                        x=hist_dates, 
-                        y=hist_prices, 
-                        name='Historical Close', 
-                        line=dict(color='#3B82F6', width=2)
-                    ))
-                    
-                    # Combine last historical close point with future steps for continuous rendering
-                    fc_x = [dates[-1]] + list(forecast_dates)
-                    fc_y = [prices[-1]] + list(forecast.values)
-                    fc_upper = [prices[-1]] + upper_bounds
-                    fc_lower = [prices[-1]] + lower_bounds
-                    
-                    # Upper bound (invisible line, used for fill)
-                    fig_fc.add_trace(go.Scatter(
-                        x=fc_x, 
-                        y=fc_upper, 
-                        name='Upper 95% Bound', 
-                        line=dict(color='rgba(245, 158, 11, 0)', width=0),
-                        showlegend=False
-                    ))
-                    
-                    # Lower bound with fill to upper bound
-                    fig_fc.add_trace(go.Scatter(
-                        x=fc_x, 
-                        y=fc_lower, 
-                        name='95% Confidence Interval', 
-                        line=dict(color='rgba(245, 158, 11, 0)', width=0),
-                        fill='tonexty',
-                        fillcolor='rgba(245, 158, 11, 0.12)',
-                        showlegend=True
-                    ))
-                    
-                    # Projected Trend line
-                    fig_fc.add_trace(go.Scatter(
-                        x=fc_x, 
-                        y=fc_y, 
-                        name='Forecast Trend', 
-                        line=dict(color='#F59E0B', width=2.5, dash='dash')
-                    ))
-                    
-                    fig_fc.update_layout(
-                        template=plotly_template, 
-                        height=450, 
-                        margin=dict(l=0, r=0, t=25, b=0),
-                        paper_bgcolor='rgba(0,0,0,0)', 
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        legend=dict(orientation="h", y=1.1, x=0.01),
-                        xaxis_title="Timeline",
-                        yaxis_title="Price (Rs.)"
-                    )
-                    
-                    st.plotly_chart(fig_fc, use_container_width=True)
-                    
-                    # Forecast Table details
-                    st.markdown("### Projection Details Table")
-                    forecast_table = pd.DataFrame({
-                        "Timeline": [d.strftime("%Y-%m-%d %H:%M" if "Hourly" in forecast_type else "%Y-%m-%d") for d in forecast_dates],
-                        "Forecast Price": [f"₹{v:.2f}" for v in forecast.values],
-                        "Lower 95% Bound": [f"₹{v:.2f}" for v in lower_bounds],
-                        "Upper 95% Bound": [f"₹{v:.2f}" for v in upper_bounds]
-                    })
-                    st.dataframe(forecast_table, use_container_width=True)
-                else:
-                    st.warning("Not enough historical price data available to run predictive modeling. Minimum 10 bars required.")
+                    if len(prices) >= 10:
+                        model_fitted = False
+                        model_name = "Holt-Winters Exponential Smoothing"
+                        fitted_values = np.array([])
+                        
+                        # Try Holt-Winters Exponential Smoothing
+                        try:
+                            freq = 'B' if "Daily" in forecast_type else '1H'
+                            series = pd.Series(prices, index=dates)
+                            model = ExponentialSmoothing(series, trend='add', seasonal=None, initialization_method="estimated")
+                            fit_model = model.fit()
+                            forecast = fit_model.forecast(steps)
+                            fitted_values = fit_model.fittedvalues.values
+                            model_fitted = True
+                        except Exception as e:
+                            # Fallback to Linear Trend Regression using numpy polyfit
+                            x = np.arange(len(prices))
+                            slope, intercept = np.polyfit(x, prices, 1)
+                            fitted_values = slope * x + intercept
+                            
+                            future_x = np.arange(len(prices), len(prices) + steps)
+                            forecast_vals = slope * future_x + intercept
+                            forecast = pd.Series(forecast_vals)
+                            model_name = "Linear Trend Regression"
+                            model_fitted = False
+
+                        # Residual analysis for standard error estimation
+                        residuals = prices - fitted_values
+                        sigma = np.std(residuals) if len(residuals) > 0 else (prices[-1] * 0.02)
+                        if sigma == 0:
+                            sigma = prices[-1] * 0.02
+                        
+                        # Target forecast dates
+                        if "Daily" in forecast_type:
+                            forecast_dates = pd.bdate_range(start=dates[-1] + timedelta(days=1), periods=steps)
+                        else:
+                            forecast_dates = [dates[-1] + timedelta(hours=i) for i in range(1, steps + 1)]
+                        
+                        forecast.index = forecast_dates
+                        
+                        # 95% Confidence bounds propagation: SE(h) = sigma * sqrt(h)
+                        lower_bounds = []
+                        upper_bounds = []
+                        for h in range(1, steps + 1):
+                            margin = 1.96 * sigma * np.sqrt(h)
+                            lower_bounds.append(max(0.1, forecast.iloc[h-1] - margin))
+                            upper_bounds.append(forecast.iloc[h-1] + margin)
+                        
+                        # Calculate Mean Absolute Percentage Error (MAPE) for model evaluation
+                        mape = np.mean(np.abs(residuals / prices)) * 100
+                        if mape < 1.5:
+                            confidence = "High"
+                            confidence_color = "#10B981"
+                        elif mape < 4.0:
+                            confidence = "Medium"
+                            confidence_color = "#F59E0B"
+                        else:
+                            confidence = "Low"
+                            confidence_color = "#EF4444"
+                            
+                        # Calculate Directional Bias
+                        start_p = prices[-1]
+                        end_p = forecast.iloc[-1]
+                        pct_change = ((end_p - start_p) / start_p) * 100
+                        
+                        if pct_change > 0.5:
+                            trend_dir = "Bullish"
+                            trend_color = "#00B386"
+                        elif pct_change < -0.5:
+                            trend_dir = "Bearish"
+                            trend_color = "#EB5B3C"
+                        else:
+                            trend_dir = "Neutral"
+                            trend_color = "#F59E0B"
+
+                        # Metrics display columns
+                        mc1, mc2, mc3 = st.columns(3)
+                        mc1.metric("Model Confidence", f"{confidence}", f"MAPE: {mape:.2f}%", delta_color="normal" if confidence != "Low" else "inverse")
+                        mc2.metric("Directional Bias", f"{trend_dir}", f"{pct_change:+.2f}%", delta_color="normal" if trend_dir == "Bullish" else ("inverse" if trend_dir == "Bearish" else "off"))
+                        mc3.metric("Projected Target Range", f"₹{end_p:.2f}", f"₹{lower_bounds[-1]:.2f} - ₹{upper_bounds[-1]:.2f}", delta_color="off")
+                        
+                        # AI Explanation Summary Box
+                        st.markdown(f"""
+                        <div class="ai-summary" style="border-left: 4px solid {trend_color} !important;">
+                            <strong>Forecast Model Insights:</strong> FinTrend fitted a <strong>{model_name}</strong> to the stock's historical close prices. 
+                            The model anticipates a <strong>{trend_dir.upper()}</strong> trend over the projection horizon, targeting a final price of <strong>₹{end_p:.2f}</strong> 
+                            (95% confidence range: <strong>₹{lower_bounds[-1]:.2f}</strong> to <strong>₹{upper_bounds[-1]:.2f}</strong>). 
+                            Historical fit accuracy exhibits a Mean Absolute Percentage Error (MAPE) of <strong>{mape:.2f}%</strong>.
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Plotly chart
+                        fig_fc = go.Figure()
+                        
+                        # Slice historical data for display: last 30 for daily, last 24 for hourly
+                        slice_len = min(len(prices), 30 if "Daily" in forecast_type else 24)
+                        hist_dates = dates[-slice_len:]
+                        hist_prices = prices[-slice_len:]
+                        
+                        # Historical Price path
+                        fig_fc.add_trace(go.Scatter(
+                            x=hist_dates, 
+                            y=hist_prices, 
+                            name='Historical Close', 
+                            line=dict(color='#3B82F6', width=2)
+                        ))
+                        
+                        # Combine last historical close point with future steps for continuous rendering
+                        fc_x = [dates[-1]] + list(forecast_dates)
+                        fc_y = [prices[-1]] + list(forecast.values)
+                        fc_upper = [prices[-1]] + upper_bounds
+                        fc_lower = [prices[-1]] + lower_bounds
+                        
+                        # Upper bound (invisible line, used for fill)
+                        fig_fc.add_trace(go.Scatter(
+                            x=fc_x, 
+                            y=fc_upper, 
+                            name='Upper 95% Bound', 
+                            line=dict(color='rgba(245, 158, 11, 0)', width=0),
+                            showlegend=False
+                        ))
+                        
+                        # Lower bound with fill to upper bound
+                        fig_fc.add_trace(go.Scatter(
+                            x=fc_x, 
+                            y=fc_lower, 
+                            name='95% Confidence Interval', 
+                            line=dict(color='rgba(245, 158, 11, 0)', width=0),
+                            fill='tonexty',
+                            fillcolor='rgba(245, 158, 11, 0.12)',
+                            showlegend=True
+                        ))
+                        
+                        # Projected Trend line
+                        fig_fc.add_trace(go.Scatter(
+                            x=fc_x, 
+                            y=fc_y, 
+                            name='Forecast Trend', 
+                            line=dict(color='#F59E0B', width=2.5, dash='dash')
+                        ))
+                        
+                        fig_fc.update_layout(
+                            template=plotly_template, 
+                            height=450, 
+                            margin=dict(l=0, r=0, t=25, b=0),
+                            paper_bgcolor='rgba(0,0,0,0)', 
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            legend=dict(orientation="h", y=1.1, x=0.01),
+                            xaxis_title="Timeline",
+                            yaxis_title="Price (Rs.)"
+                        )
+                        
+                        st.plotly_chart(fig_fc, use_container_width=True)
+                        
+                        # Forecast Table details
+                        st.markdown("### Projection Details Table")
+                        forecast_table = pd.DataFrame({
+                            "Timeline": [d.strftime("%Y-%m-%d %H:%M" if "Hourly" in forecast_type else "%Y-%m-%d") for d in forecast_dates],
+                            "Forecast Price": [f"₹{v:.2f}" for v in forecast.values],
+                            "Lower 95% Bound": [f"₹{v:.2f}" for v in lower_bounds],
+                            "Upper 95% Bound": [f"₹{v:.2f}" for v in upper_bounds]
+                        })
+                        st.dataframe(forecast_table, use_container_width=True)
+                    else:
+                        st.warning("Not enough historical price data available to run predictive modeling. Minimum 10 bars required.")
 
             # ==========================================
             # TAB 4: COMPARE STOCKS
             # ==========================================
             with tab4:
-                st.subheader("Compare Stock Performance")
-                st.write("Select other stocks to compare their percentage growth over the selected time period.")
-                
-                compare_tickers = st.multiselect("Select Competitors", list(indian_stocks.ALL_STOCKS.keys()), default=[])
-                
-                if compare_tickers:
-                    fig_comp = go.Figure()
+                if tab4.open:
+                    st.subheader("Compare Stock Performance")
+                    st.write("Select other stocks to compare their percentage growth over the selected time period.")
                     
-                    # Normalize base stock
-                    base_norm = (stock_data['Close'] / stock_data['Close'].iloc[0]) * 100 - 100
-                    fig_comp.add_trace(go.Scatter(x=stock_data['Date'], y=base_norm, name=ticker, line=dict(width=3)))
+                    compare_tickers = st.multiselect("Select Competitors", list(indian_stocks.ALL_STOCKS.keys()), default=[])
                     
-                    for comp_name in compare_tickers:
-                        c_ticker = indian_stocks.ALL_STOCKS[comp_name]
-                        if c_ticker == "CUSTOM": continue
-                        c_data = data_fetcher.get_stock_data(c_ticker, period)
-                        if not c_data.empty:
-                            c_norm = (c_data['Close'] / c_data['Close'].iloc[0]) * 100 - 100
-                            fig_comp.add_trace(go.Scatter(x=c_data['Date'], y=c_norm, name=c_ticker))
-                            
-                    fig_comp.update_layout(template=plotly_template, height=500, yaxis_title="% Return", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                    st.plotly_chart(fig_comp, use_container_width=True)
+                    if compare_tickers:
+                        fig_comp = go.Figure()
+                        
+                        # Normalize base stock
+                        base_norm = (stock_data['Close'] / stock_data['Close'].iloc[0]) * 100 - 100
+                        fig_comp.add_trace(go.Scatter(x=stock_data['Date'], y=base_norm, name=ticker, line=dict(width=3)))
+                        
+                        for comp_name in compare_tickers:
+                            c_ticker = indian_stocks.ALL_STOCKS[comp_name]
+                            if c_ticker == "CUSTOM": continue
+                            c_data = data_fetcher.get_stock_data(c_ticker, period)
+                            if not c_data.empty:
+                                c_norm = (c_data['Close'] / c_data['Close'].iloc[0]) * 100 - 100
+                                fig_comp.add_trace(go.Scatter(x=c_data['Date'], y=c_norm, name=c_ticker))
+                                
+                        fig_comp.update_layout(template=plotly_template, height=500, yaxis_title="% Return", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+                        st.plotly_chart(fig_comp, use_container_width=True)
 
             # ==========================================
             # TAB 9: PORTFOLIO
@@ -1756,296 +1758,299 @@ if ticker:
             # TAB 6: IPO ZONE
             # ==========================================
             with tab6:
-                st.subheader("NSE & BSE IPO Zone")
-                st.markdown("Track active, ongoing, upcoming, and recently listed Initial Public Offerings (IPOs) in real-time.")
-                
-                with st.spinner("Fetching real-time IPO data from Moneycontrol..."):
-                    try:
-                        ipo_dict = data_fetcher.get_live_ipo_data()
-                    except Exception as e:
-                        st.error("Error connecting to real-time IPO feed. Showing fallback data.")
-                        ipo_dict = {
-                            "ongoing": pd.DataFrame(),
-                            "listed": pd.DataFrame(),
-                            "upcoming": pd.DataFrame()
-                        }
+                if tab6.open:
+                    st.subheader("NSE & BSE IPO Zone")
+                    st.markdown("Track active, ongoing, upcoming, and recently listed Initial Public Offerings (IPOs) in real-time.")
                     
-                ongoing_df = ipo_dict.get("ongoing", pd.DataFrame())
-                listed_df = ipo_dict.get("listed", pd.DataFrame())
-                upcoming_df = ipo_dict.get("upcoming", pd.DataFrame())
-                
-                upcoming_col, ongoing_col, listed_col = st.columns(3)
-                
-                with upcoming_col:
-                    st.markdown("### Upcoming IPOs (DRHP Filed)")
-                    if upcoming_df.empty:
-                        st.info("No upcoming DRHP filings found.")
-                    else:
-                        for idx, row in upcoming_df.iterrows():
-                            company_name = row.get("Company Name", "N/A")
-                            filing_date = row.get("DRHP Filing Date", "TBD")
-                            st.markdown(f"""
-                            <div class="news-card" style="padding: 15px; border-left: 4px solid #F59E0B; margin-bottom: 12px;">
-                                <h4 style="margin: 0 0 6px 0; font-size: 1rem; font-weight: 600; color: {text_color};">{company_name}</h4>
-                                <div style="font-size: 0.85rem; color: {tab_text};">DRHP Filed: {filing_date}</div>
-                            </div>
-                            """, unsafe_allow_html=True)
-
-                with ongoing_col:
-                    st.markdown("### Ongoing / Open IPOs")
-                    if ongoing_df.empty:
-                        st.info("No active open IPOs at this time.")
-                    else:
-                        for idx, row in ongoing_df.iterrows():
-                            company_name = row.get("Company Name", "N/A")
-                            segment = row.get("Segment", "Mainline")
-                            issue_price = row.get("Issue Price", "TBD")
-                            subscription = row.get("Subscription", "-")
-                            listing_date = row.get("Listing Date", "TBD")
-                            st.markdown(f"""
-                            <div class="news-card" style="padding: 15px; border-left: 4px solid #3B82F6; margin-bottom: 12px;">
-                                <h4 style="margin: 0 0 6px 0; font-size: 1rem; font-weight: 600; color: {text_color};">{company_name}</h4>
-                                <div style="display: flex; gap: 8px; margin-bottom: 6px;">
-                                    <span class="sentiment-badge badge-neutral" style="font-size: 0.7rem; padding: 2px 6px;">{segment}</span>
-                                    <span class="sentiment-badge badge-positive" style="font-size: 0.7rem; padding: 2px 6px; background-color: rgba(59, 130, 246, 0.12); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.2);">Active</span>
-                                </div>
-                                <div style="font-size: 0.85rem; margin-top: 4px;">Price: <strong style="color: {text_color};">{issue_price}</strong></div>
-                                <div style="font-size: 0.85rem; margin-top: 2px;">Subscription: <strong style="color: {text_color};">{subscription}</strong></div>
-                                <div style="font-size: 0.85rem; margin-top: 2px;">Listing Date: <strong style="color: {text_color};">{listing_date}</strong></div>
-                            </div>
-                            """, unsafe_allow_html=True)
+                    with st.spinner("Fetching real-time IPO data from Moneycontrol..."):
+                        try:
+                            ipo_dict = data_fetcher.get_live_ipo_data()
+                        except Exception as e:
+                            st.error("Error connecting to real-time IPO feed. Showing fallback data.")
+                            ipo_dict = {
+                                "ongoing": pd.DataFrame(),
+                                "listed": pd.DataFrame(),
+                                "upcoming": pd.DataFrame()
+                            }
                         
-                with listed_col:
-                    st.markdown("### Recently Listed IPOs")
-                    if listed_df.empty:
-                        st.info("No recently listed IPOs found.")
-                    else:
-                        for idx, row in listed_df.iterrows():
-                            company_name = str(row.get("Company Name", "N/A"))
-                            segment = str(row.get("Segment", "Mainline"))
-                            listing_date = str(row.get("Listing Date", "TBD"))
-                            issue_price = str(row.get("Issue Price", "TBD"))
-                            listing_gain = str(row.get("Listing Gain", "-"))
-                            ltp = str(row.get("LTP", "-"))
-                            
-                            # Clean listing gain color logic
-                            gain_badge_class = "badge-positive" if "+" in listing_gain or "positive" in listing_gain.lower() else ("badge-negative" if "-" in listing_gain or "negative" in listing_gain.lower() else "badge-neutral")
-                            
-                            st.markdown(f"""
-                            <div class="news-card" style="padding: 15px; border-left: 4px solid #10B981; margin-bottom: 12px;">
-                                <h4 style="margin: 0 0 6px 0; font-size: 1rem; font-weight: 600; color: {text_color};">{company_name}</h4>
-                                <div style="display: flex; gap: 8px; margin-bottom: 6px;">
-                                    <span class="sentiment-badge badge-neutral" style="font-size: 0.7rem; padding: 2px 6px;">{segment}</span>
-                                    <span class="sentiment-badge {gain_badge_class}" style="font-size: 0.7rem; padding: 2px 6px;">Gain: {listing_gain}</span>
+                    ongoing_df = ipo_dict.get("ongoing", pd.DataFrame())
+                    listed_df = ipo_dict.get("listed", pd.DataFrame())
+                    upcoming_df = ipo_dict.get("upcoming", pd.DataFrame())
+                    
+                    upcoming_col, ongoing_col, listed_col = st.columns(3)
+                    
+                    with upcoming_col:
+                        st.markdown("### Upcoming IPOs (DRHP Filed)")
+                        if upcoming_df.empty:
+                            st.info("No upcoming DRHP filings found.")
+                        else:
+                            for idx, row in upcoming_df.iterrows():
+                                company_name = row.get("Company Name", "N/A")
+                                filing_date = row.get("DRHP Filing Date", "TBD")
+                                st.markdown(f"""
+                                <div class="news-card" style="padding: 15px; border-left: 4px solid #F59E0B; margin-bottom: 12px;">
+                                    <h4 style="margin: 0 0 6px 0; font-size: 1rem; font-weight: 600; color: {text_color};">{company_name}</h4>
+                                    <div style="font-size: 0.85rem; color: {tab_text};">DRHP Filed: {filing_date}</div>
                                 </div>
-                                <div style="font-size: 0.85rem; margin-top: 4px;">Listed on: <strong style="color: {text_color};">{listing_date}</strong></div>
-                                <div style="font-size: 0.85rem; margin-top: 2px;">Issue Price: <strong style="color: {text_color};">{issue_price}</strong></div>
-                                <div style="font-size: 0.85rem; margin-top: 2px;">LTP: <strong style="color: {text_color};">{ltp}</strong></div>
-                            </div>
-                            """, unsafe_allow_html=True)
+                                """, unsafe_allow_html=True)
+
+                    with ongoing_col:
+                        st.markdown("### Ongoing / Open IPOs")
+                        if ongoing_df.empty:
+                            st.info("No active open IPOs at this time.")
+                        else:
+                            for idx, row in ongoing_df.iterrows():
+                                company_name = row.get("Company Name", "N/A")
+                                segment = row.get("Segment", "Mainline")
+                                issue_price = row.get("Issue Price", "TBD")
+                                subscription = row.get("Subscription", "-")
+                                listing_date = row.get("Listing Date", "TBD")
+                                st.markdown(f"""
+                                <div class="news-card" style="padding: 15px; border-left: 4px solid #3B82F6; margin-bottom: 12px;">
+                                    <h4 style="margin: 0 0 6px 0; font-size: 1rem; font-weight: 600; color: {text_color};">{company_name}</h4>
+                                    <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+                                        <span class="sentiment-badge badge-neutral" style="font-size: 0.7rem; padding: 2px 6px;">{segment}</span>
+                                        <span class="sentiment-badge badge-positive" style="font-size: 0.7rem; padding: 2px 6px; background-color: rgba(59, 130, 246, 0.12); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.2);">Active</span>
+                                    </div>
+                                    <div style="font-size: 0.85rem; margin-top: 4px;">Price: <strong style="color: {text_color};">{issue_price}</strong></div>
+                                    <div style="font-size: 0.85rem; margin-top: 2px;">Subscription: <strong style="color: {text_color};">{subscription}</strong></div>
+                                    <div style="font-size: 0.85rem; margin-top: 2px;">Listing Date: <strong style="color: {text_color};">{listing_date}</strong></div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            
+                    with listed_col:
+                        st.markdown("### Recently Listed IPOs")
+                        if listed_df.empty:
+                            st.info("No recently listed IPOs found.")
+                        else:
+                            for idx, row in listed_df.iterrows():
+                                company_name = str(row.get("Company Name", "N/A"))
+                                segment = str(row.get("Segment", "Mainline"))
+                                listing_date = str(row.get("Listing Date", "TBD"))
+                                issue_price = str(row.get("Issue Price", "TBD"))
+                                listing_gain = str(row.get("Listing Gain", "-"))
+                                ltp = str(row.get("LTP", "-"))
+                                
+                                # Clean listing gain color logic
+                                gain_badge_class = "badge-positive" if "+" in listing_gain or "positive" in listing_gain.lower() else ("badge-negative" if "-" in listing_gain or "negative" in listing_gain.lower() else "badge-neutral")
+                                
+                                st.markdown(f"""
+                                <div class="news-card" style="padding: 15px; border-left: 4px solid #10B981; margin-bottom: 12px;">
+                                    <h4 style="margin: 0 0 6px 0; font-size: 1rem; font-weight: 600; color: {text_color};">{company_name}</h4>
+                                    <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+                                        <span class="sentiment-badge badge-neutral" style="font-size: 0.7rem; padding: 2px 6px;">{segment}</span>
+                                        <span class="sentiment-badge {gain_badge_class}" style="font-size: 0.7rem; padding: 2px 6px;">Gain: {listing_gain}</span>
+                                    </div>
+                                    <div style="font-size: 0.85rem; margin-top: 4px;">Listed on: <strong style="color: {text_color};">{listing_date}</strong></div>
+                                    <div style="font-size: 0.85rem; margin-top: 2px;">Issue Price: <strong style="color: {text_color};">{issue_price}</strong></div>
+                                    <div style="font-size: 0.85rem; margin-top: 2px;">LTP: <strong style="color: {text_color};">{ltp}</strong></div>
+                                </div>
+                                """, unsafe_allow_html=True)
 
             # ==========================================
             # TAB 7: WATCHLIST
             # ==========================================
             with tab7:
-                st.subheader("My Watchlist")
-                watchlist = auth.get_watchlist(st.session_state.username)
-                
-                if not watchlist:
-                    st.info("Your watchlist is empty. Search for a stock and click 'Add to Watchlist' in the sidebar.")
-                else:
-                    # Create a nice layout for watchlist
-                    st.write("Live updates for your favorite stocks:")
+                if tab7.open:
+                    st.subheader("My Watchlist")
+                    watchlist = auth.get_watchlist(st.session_state.username)
                     
-                    for w_ticker in watchlist:
-                        w_data = data_fetcher.get_stock_data(w_ticker, "1mo")
-                        if not w_data.empty and len(w_data) > 1:
-                            w_current = w_data['Close'].iloc[-1]
-                            w_prev = w_data['Close'].iloc[-2]
-                            w_diff = w_current - w_prev
-                            w_pct = (w_diff / w_prev) * 100
-                            
-                            c1, c2, c3 = st.columns([2, 1, 1])
-                            with c1:
-                                st.markdown(f"### {w_ticker}")
-                            with c2:
-                                st.metric("Price", f"₹{w_current:.2f}", f"{w_diff:.2f} ({w_pct:.2f}%)")
-                            with c3:
-                                if st.button("Remove", key=f"rm_{w_ticker}"):
-                                    auth.remove_from_watchlist(st.session_state.username, w_ticker)
-                                    st.rerun()
-                            st.markdown("---")
+                    if not watchlist:
+                        st.info("Your watchlist is empty. Search for a stock and click 'Add to Watchlist' in the sidebar.")
+                    else:
+                        # Create a nice layout for watchlist
+                        st.write("Live updates for your favorite stocks:")
+                        
+                        for w_ticker in watchlist:
+                            w_data = data_fetcher.get_stock_data(w_ticker, "1mo")
+                            if not w_data.empty and len(w_data) > 1:
+                                w_current = w_data['Close'].iloc[-1]
+                                w_prev = w_data['Close'].iloc[-2]
+                                w_diff = w_current - w_prev
+                                w_pct = (w_diff / w_prev) * 100
+                                
+                                c1, c2, c3 = st.columns([2, 1, 1])
+                                with c1:
+                                    st.markdown(f"### {w_ticker}")
+                                with c2:
+                                    st.metric("Price", f"₹{w_current:.2f}", f"{w_diff:.2f} ({w_pct:.2f}%)")
+                                with c3:
+                                    if st.button("Remove", key=f"rm_{w_ticker}"):
+                                        auth.remove_from_watchlist(st.session_state.username, w_ticker)
+                                        st.rerun()
+                                st.markdown("---")
                             
             # ==========================================
             # TAB 8: MARKET SIGNALS (Rise/Fall Predictor)
             # ==========================================
             with tab8:
-                st.subheader("Dynamic Market Signal Scanner")
-                st.markdown("AI-powered scanner that analyzes **RSI, MACD, and Moving Averages** to predict whether each stock is likely to Rise or Fall.")
-                st.markdown("---")
+                if tab8.open:
+                    st.subheader("Dynamic Market Signal Scanner")
+                    st.markdown("AI-powered scanner that analyzes **RSI, MACD, and Moving Averages** to predict whether each stock is likely to Rise or Fall.")
+                    st.markdown("---")
 
-                def get_signal_score(df):
-                    """Returns a score -100 to +100. Positive = Bullish, Negative = Bearish."""
-                    if df.empty or len(df) < 30:
-                        return None, "Neutral", ""
-                    score = 0
-                    close = df['Close']
+                    def get_signal_score(df):
+                        """Returns a score -100 to +100. Positive = Bullish, Negative = Bearish."""
+                        if df.empty or len(df) < 30:
+                            return None, "Neutral", ""
+                        score = 0
+                        close = df['Close']
 
-                    # Signal 1: RSI
-                    rsi_val = calc_rsi(df).iloc[-1]
-                    if rsi_val < 35:
-                        score += 35  # Oversold -> likely bounce up
-                    elif rsi_val > 65:
-                        score -= 35  # Overbought -> likely pullback
-                    else:
-                        score += (50 - rsi_val) * 0.5
+                        # Signal 1: RSI
+                        rsi_val = calc_rsi(df).iloc[-1]
+                        if rsi_val < 35:
+                            score += 35  # Oversold -> likely bounce up
+                        elif rsi_val > 65:
+                            score -= 35  # Overbought -> likely pullback
+                        else:
+                            score += (50 - rsi_val) * 0.5
 
-                    # Signal 2: MACD Crossover
-                    macd_line, signal_line = calc_macd(df)
-                    if macd_line.iloc[-1] > signal_line.iloc[-1] and macd_line.iloc[-2] <= signal_line.iloc[-2]:
-                        score += 40  # Fresh bullish crossover
-                    elif macd_line.iloc[-1] < signal_line.iloc[-1] and macd_line.iloc[-2] >= signal_line.iloc[-2]:
-                        score -= 40  # Fresh bearish crossover
-                    elif macd_line.iloc[-1] > signal_line.iloc[-1]:
-                        score += 15
-                    else:
-                        score -= 15
+                        # Signal 2: MACD Crossover
+                        macd_line, signal_line = calc_macd(df)
+                        if macd_line.iloc[-1] > signal_line.iloc[-1] and macd_line.iloc[-2] <= signal_line.iloc[-2]:
+                            score += 40  # Fresh bullish crossover
+                        elif macd_line.iloc[-1] < signal_line.iloc[-1] and macd_line.iloc[-2] >= signal_line.iloc[-2]:
+                            score -= 40  # Fresh bearish crossover
+                        elif macd_line.iloc[-1] > signal_line.iloc[-1]:
+                            score += 15
+                        else:
+                            score -= 15
 
-                    # Signal 3: Price vs 20-day MA
-                    ma20 = close.rolling(20).mean().iloc[-1]
-                    if close.iloc[-1] > ma20:
-                        score += 25
-                    else:
-                        score -= 25
+                        # Signal 3: Price vs 20-day MA
+                        ma20 = close.rolling(20).mean().iloc[-1]
+                        if close.iloc[-1] > ma20:
+                            score += 25
+                        else:
+                            score -= 25
 
-                    score = max(-100, min(100, score))
+                        score = max(-100, min(100, score))
 
-                    if score >= 30:
-                        return score, "Rise", ""
-                    elif score <= -30:
-                        return score, "Fall", ""
-                    else:
-                        return score, "Neutral", ""
+                        if score >= 30:
+                            return score, "Rise", ""
+                        elif score <= -30:
+                            return score, "Fall", ""
+                        else:
+                            return score, "Neutral", ""
 
-                # Stock selection for scanning
-                scan_col1, scan_col2 = st.columns([2, 1])
-                with scan_col1:
-                    all_stock_names = [k for k, v in indian_stocks.ALL_STOCKS.items() if v != "CUSTOM"]
-                    stocks_to_scan = st.multiselect(
-                        "Select stocks to scan (leave empty for Top 20 auto-scan)",
-                        all_stock_names,
-                        default=[]
-                    )
-                with scan_col2:
-                    scan_period = st.selectbox("Data Period", ["3mo", "6mo", "1y"], index=1, key="scan_period")
-
-                if st.button("Run Signal Scan", use_container_width=True):
-                    scan_list = stocks_to_scan if stocks_to_scan else all_stock_names[:20]
-                    results = []
-
-                    progress = st.progress(0, text="Running bulk market scan...")
-                    ticker_list = [indian_stocks.ALL_STOCKS[name] for name in scan_list if name in indian_stocks.ALL_STOCKS]
-                    
-                    try:
-                        # Fetch all tickers in a single bulk request to prevent rate-limiting on Streamlit Cloud
-                        bulk_data = yf.download(
-                            tickers=ticker_list,
-                            period=scan_period,
-                            interval="1d",
-                            group_by='ticker',
-                            threads=True,
-                            progress=False
+                    # Stock selection for scanning
+                    scan_col1, scan_col2 = st.columns([2, 1])
+                    with scan_col1:
+                        all_stock_names = [k for k, v in indian_stocks.ALL_STOCKS.items() if v != "CUSTOM"]
+                        stocks_to_scan = st.multiselect(
+                            "Select stocks to scan (leave empty for Top 20 auto-scan)",
+                            all_stock_names,
+                            default=[]
                         )
+                    with scan_col2:
+                        scan_period = st.selectbox("Data Period", ["3mo", "6mo", "1y"], index=1, key="scan_period")
+
+                    if st.button("Run Signal Scan", use_container_width=True):
+                        scan_list = stocks_to_scan if stocks_to_scan else all_stock_names[:20]
+                        results = []
+
+                        progress = st.progress(0, text="Running bulk market scan...")
+                        ticker_list = [indian_stocks.ALL_STOCKS[name] for name in scan_list if name in indian_stocks.ALL_STOCKS]
                         
-                        for i, stock_name in enumerate(scan_list):
-                            t = indian_stocks.ALL_STOCKS.get(stock_name)
-                            if not t:
-                                continue
-                                
-                            # Extract single stock DataFrame from bulk data
-                            df_scan = pd.DataFrame()
-                            if isinstance(bulk_data.columns, pd.MultiIndex):
-                                ticker_level = 1
-                                if 'Ticker' in bulk_data.columns.names:
-                                    ticker_level = bulk_data.columns.names.index('Ticker')
-                                try:
-                                    df_scan = bulk_data.xs(t, level=ticker_level, axis=1).copy()
-                                except:
-                                    pass
-                            else:
-                                df_scan = bulk_data.copy()
+                        try:
+                            # Fetch all tickers in a single bulk request to prevent rate-limiting on Streamlit Cloud
+                            bulk_data = yf.download(
+                                tickers=ticker_list,
+                                period=scan_period,
+                                interval="1d",
+                                group_by='ticker',
+                                threads=True,
+                                progress=False
+                            )
+                            
+                            for i, stock_name in enumerate(scan_list):
+                                t = indian_stocks.ALL_STOCKS.get(stock_name)
+                                if not t:
+                                    continue
                                     
-                            if not df_scan.empty:
-                                df_scan.dropna(subset=['Close'], inplace=True)
-                                
-                            if not df_scan.empty and 'Close' in df_scan.columns:
-                                df_scan.reset_index(inplace=True)
-                                if 'Date' in df_scan.columns:
-                                    df_scan['Date'] = pd.to_datetime(df_scan['Date']).dt.tz_localize(None)
+                                # Extract single stock DataFrame from bulk data
+                                df_scan = pd.DataFrame()
+                                if isinstance(bulk_data.columns, pd.MultiIndex):
+                                    ticker_level = 1
+                                    if 'Ticker' in bulk_data.columns.names:
+                                        ticker_level = bulk_data.columns.names.index('Ticker')
+                                    try:
+                                        df_scan = bulk_data.xs(t, level=ticker_level, axis=1).copy()
+                                    except:
+                                        pass
+                                else:
+                                    df_scan = bulk_data.copy()
+                                        
+                                if not df_scan.empty:
+                                    df_scan.dropna(subset=['Close'], inplace=True)
                                     
-                                score, signal, emoji = get_signal_score(df_scan)
-                                if score is not None:
-                                    cur_p = df_scan['Close'].iloc[-1]
-                                    prev_p = df_scan['Close'].iloc[-2] if len(df_scan) > 1 else cur_p
-                                    day_chg = ((cur_p - prev_p) / prev_p) * 100
-                                    results.append({
-                                        "Company": stock_name,
-                                        "Ticker": t,
-                                        "Price": cur_p,
-                                        "Day Change %": day_chg,
-                                        "Signal": signal,
-                                        "Score": score
-                                    })
-                            progress.progress((i + 1) / len(scan_list), text=f"Processed {stock_name}...")
-                    except Exception as scan_err:
-                        st.error(f"Bulk scan error: {str(scan_err)}")
-                        
-                    progress.empty()
+                                if not df_scan.empty and 'Close' in df_scan.columns:
+                                    df_scan.reset_index(inplace=True)
+                                    if 'Date' in df_scan.columns:
+                                        df_scan['Date'] = pd.to_datetime(df_scan['Date']).dt.tz_localize(None)
+                                        
+                                    score, signal, emoji = get_signal_score(df_scan)
+                                    if score is not None:
+                                        cur_p = df_scan['Close'].iloc[-1]
+                                        prev_p = df_scan['Close'].iloc[-2] if len(df_scan) > 1 else cur_p
+                                        day_chg = ((cur_p - prev_p) / prev_p) * 100
+                                        results.append({
+                                            "Company": stock_name,
+                                            "Ticker": t,
+                                            "Price": cur_p,
+                                            "Day Change %": day_chg,
+                                            "Signal": signal,
+                                            "Score": score
+                                        })
+                                progress.progress((i + 1) / len(scan_list), text=f"Processed {stock_name}...")
+                        except Exception as scan_err:
+                            st.error(f"Bulk scan error: {str(scan_err)}")
+                            
+                        progress.empty()
 
-                    if results:
-                        results_df = pd.DataFrame(results).sort_values("Score", ascending=False)
+                        if results:
+                            results_df = pd.DataFrame(results).sort_values("Score", ascending=False)
 
-                        # Summary row
-                        bullish_count = len(results_df[results_df["Signal"] == "Rise"])
-                        bearish_count = len(results_df[results_df["Signal"] == "Fall"])
-                        neutral_count = len(results_df[results_df["Signal"] == "Neutral"])
+                            # Summary row
+                            bullish_count = len(results_df[results_df["Signal"] == "Rise"])
+                            bearish_count = len(results_df[results_df["Signal"] == "Fall"])
+                            neutral_count = len(results_df[results_df["Signal"] == "Neutral"])
 
-                        m1, m2, m3 = st.columns(3)
-                        m1.metric("Bullish Stocks", bullish_count)
-                        m2.metric("Bearish Stocks", bearish_count)
-                        m3.metric("Neutral Stocks", neutral_count)
-                        st.markdown("---")
+                            m1, m2, m3 = st.columns(3)
+                            m1.metric("Bullish Stocks", bullish_count)
+                            m2.metric("Bearish Stocks", bearish_count)
+                            m3.metric("Neutral Stocks", neutral_count)
+                            st.markdown("---")
 
-                        # Display cards
-                        st.markdown("### Stock Signal Cards")
-                        cols_per_row = 3
-                        row_items = [results_df.iloc[i:i+cols_per_row] for i in range(0, len(results_df), cols_per_row)]
+                            # Display cards
+                            st.markdown("### Stock Signal Cards")
+                            cols_per_row = 3
+                            row_items = [results_df.iloc[i:i+cols_per_row] for i in range(0, len(results_df), cols_per_row)]
 
-                        for row in row_items:
-                            card_cols = st.columns(cols_per_row)
-                            for col, (_, row_data) in zip(card_cols, row.iterrows()):
-                                border_color = "#10B981" if row_data["Signal"] == "Rise" else ("#EF4444" if row_data["Signal"] == "Fall" else "#F59E0B")
-                                score_normalized = (row_data["Score"] + 100) / 200  # 0 to 1
-                                day_color = "#10B981" if row_data["Day Change %"] >= 0 else "#EF4444"
-                                day_arrow = "▲" if row_data["Day Change %"] >= 0 else "▼"
-                                col.markdown(f"""
-                                <div class="news-card" style="border-left: 4px solid {border_color}; padding: 14px;">
-                                    <div style="font-size:1.15rem; font-weight:600; display:flex; align-items:center;">
-                                        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:{border_color}; margin-right:8px;"></span>
-                                        <strong>{row_data['Company'][:20]}</strong>
+                            for row in row_items:
+                                card_cols = st.columns(cols_per_row)
+                                for col, (_, row_data) in zip(card_cols, row.iterrows()):
+                                    border_color = "#10B981" if row_data["Signal"] == "Rise" else ("#EF4444" if row_data["Signal"] == "Fall" else "#F59E0B")
+                                    score_normalized = (row_data["Score"] + 100) / 200  # 0 to 1
+                                    day_color = "#10B981" if row_data["Day Change %"] >= 0 else "#EF4444"
+                                    day_arrow = "▲" if row_data["Day Change %"] >= 0 else "▼"
+                                    col.markdown(f"""
+                                    <div class="news-card" style="border-left: 4px solid {border_color}; padding: 14px;">
+                                        <div style="font-size:1.15rem; font-weight:600; display:flex; align-items:center;">
+                                            <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:{border_color}; margin-right:8px;"></span>
+                                            <strong>{row_data['Company'][:20]}</strong>
+                                        </div>
+                                        <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">{row_data['Ticker']}</div>
+                                        <div style="font-size:1.1rem; margin:6px 0;">₹{row_data['Price']:.2f} <span style="color:{day_color}; font-size:0.9rem;">{day_arrow} {abs(row_data['Day Change %']):.2f}%</span></div>
+                                        <div style="background:rgba(255,255,255,0.1); border-radius:6px; height:8px; overflow:hidden;">
+                                            <div style="background:{border_color}; width:{int(score_normalized*100)}%; height:100%; border-radius:6px;"></div>
+                                        </div>
+                                        <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">Confidence: {abs(row_data['Score']):.0f}/100</div>
                                     </div>
-                                    <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">{row_data['Ticker']}</div>
-                                    <div style="font-size:1.1rem; margin:6px 0;">₹{row_data['Price']:.2f} <span style="color:{day_color}; font-size:0.9rem;">{day_arrow} {abs(row_data['Day Change %']):.2f}%</span></div>
-                                    <div style="background:rgba(255,255,255,0.1); border-radius:6px; height:8px; overflow:hidden;">
-                                        <div style="background:{border_color}; width:{int(score_normalized*100)}%; height:100%; border-radius:6px;"></div>
-                                    </div>
-                                    <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">Confidence: {abs(row_data['Score']):.0f}/100</div>
-                                </div>
-                                """, unsafe_allow_html=True)
+                                    """, unsafe_allow_html=True)
+                        else:
+                            st.warning("No signal data could be fetched. Try different stocks.")
                     else:
-                        st.warning("No signal data could be fetched. Try different stocks.")
-                else:
-                    st.info("Select stocks above and click 'Run Signal Scan' to see predictions.")
+                        st.info("Select stocks above and click 'Run Signal Scan' to see predictions.")
 
     except Exception as e:
         st.error(f"Error fetching data: {str(e)}")

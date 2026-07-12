@@ -1,7 +1,9 @@
 import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
+import streamlit as st
 
+@st.cache_data(ttl=300)
 def get_stock_data(ticker, period="1y", interval="1d"):
     """
     Fetches historical stock price data for a given ticker.
@@ -17,6 +19,7 @@ def get_stock_data(ticker, period="1y", interval="1d"):
         hist['Date'] = pd.to_datetime(hist['Date']).dt.tz_localize(None)
     return hist
 
+@st.cache_data(ttl=300)
 def get_stock_news(ticker):
     """
     Fetches recent news articles for a given ticker.
@@ -161,6 +164,7 @@ def get_stock_news(ticker):
             
     return pd.DataFrame(articles)
 
+@st.cache_data(ttl=600)
 def get_stock_info(ticker):
     """
     Fetches fundamental data and company information for a given ticker.
@@ -173,6 +177,7 @@ def get_stock_info(ticker):
         return {}
 
 
+@st.cache_data(ttl=3600)
 def get_live_ipo_data():
     """
     Scrapes real-time IPO data from Moneycontrol with robust mock fallbacks in case of network/parse failures.
