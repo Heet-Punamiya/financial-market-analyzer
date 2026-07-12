@@ -1,0 +1,10 @@
+[server]
+# Prevent WebSocket disconnects due to compression issues on proxy servers
+enableWebsocketCompression = false
+
+# Allow larger payloads (e.g. large pandas dataframes/plots) without dropping the connection
+maxMessageSize = 500
+
+# Disable CORS/XSRF protection to avoid websocket drops across public proxies
+enableCORS = false
+enableXsrfProtection = false
