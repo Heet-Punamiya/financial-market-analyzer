@@ -7,3 +7,5 @@ requests
 statsmodels
 lxml
 nltk
+fastapi
+pydantic
