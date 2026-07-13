@@ -1,0 +1,7 @@
+requirements.txt
+fintrend.db
+*.html
+*.txt
+*.log
+.streamlit/
+__pycache__/
