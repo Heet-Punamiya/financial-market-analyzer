@@ -6,7 +6,12 @@ import os
 
 app = FastAPI(title="FinTrend Backend API")
 
-DB_FILE = "fintrend.db"
+VERCEL = os.environ.get("VERCEL") == "1"
+
+if VERCEL:
+    DB_FILE = "/tmp/fintrend.db"
+else:
+    DB_FILE = "fintrend.db"
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
