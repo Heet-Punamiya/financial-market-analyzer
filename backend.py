@@ -69,6 +69,10 @@ def init_db():
 
 init_db()
 
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "FinTrend Backend API is running successfully"}
+
 # --- Models ---
 class User(BaseModel):
     username: str
